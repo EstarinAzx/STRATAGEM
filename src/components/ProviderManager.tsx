@@ -164,6 +164,99 @@ function profileSummary(profile: ProviderProfile, isActive: boolean): string {
   return `${providerKind} · ${profile.baseUrl} · ${modelDisplay} · ${keyInfo}${activeSuffix}`
 }
 
+/**
+ * Returns a list of known model names for recognized provider base URLs.
+ * Used as fallback when /models API discovery fails or returns empty.
+ */
+function getKnownModelsForBaseUrl(baseUrl: string): string[] | null {
+  const lower = baseUrl.toLowerCase()
+
+  // Codex / ChatGPT backend
+  if (lower.includes('codex') || lower.includes('chatgpt.com')) {
+    return [
+      'gpt-5.5',
+      'gpt-5.4',
+      'gpt-5.3-codex',
+      'gpt-5-mini',
+      'codexplan',
+      'codexspark',
+      'o4-mini',
+      'o3',
+      'gpt-4.1',
+      'gpt-4.1-mini',
+      'gpt-5.4-mini',
+      'gpt-5.2-codex',
+      'gpt-5.1-codex-max',
+      'gpt-5.1-codex-mini',
+    ]
+  }
+
+  // OpenAI API
+  if (lower.includes('api.openai.com')) {
+    return [
+      'gpt-5.5',
+      'gpt-5.4',
+      'gpt-5-mini',
+      'o4-mini',
+      'o3',
+      'gpt-4.1',
+      'gpt-4.1-mini',
+      'gpt-4o',
+      'gpt-4o-mini',
+    ]
+  }
+
+  // Google Gemini
+  if (lower.includes('generativelanguage.googleapis.com') || lower.includes('gemini')) {
+    return [
+      'gemini-2.5-pro',
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-2.0-flash-lite',
+    ]
+  }
+
+  // Mistral
+  if (lower.includes('mistral')) {
+    return [
+      'mistral-large-latest',
+      'mistral-medium-latest',
+      'mistral-small-latest',
+      'codestral-latest',
+    ]
+  }
+
+  // Groq
+  if (lower.includes('groq')) {
+    return [
+      'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant',
+      'mixtral-8x7b-32768',
+      'gemma2-9b-it',
+    ]
+  }
+
+  // DeepSeek
+  if (lower.includes('deepseek')) {
+    return [
+      'deepseek-chat',
+      'deepseek-reasoner',
+      'deepseek-coder',
+    ]
+  }
+
+  // xAI / Grok
+  if (lower.includes('x.ai') || lower.includes('grok')) {
+    return [
+      'grok-3',
+      'grok-3-mini',
+      'grok-2',
+    ]
+  }
+
+  return null
+}
+
 function getGithubCredentialSourceFromEnv(
   processEnv: NodeJS.ProcessEnv = process.env,
 ): GithubCredentialSource {
@@ -1010,9 +1103,15 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
         const models: string[] = (response.data?.data ?? [])
           .map((m: { id?: string }) => m.id ?? '')
           .filter((id: string) => id.length > 0)
-        setDiscoveredModels(models.length > 0 ? models : null)
+        if (models.length > 0) {
+          setDiscoveredModels(models)
+        } else {
+          // API returned empty — fall back to known models
+          if (!cancelled) setDiscoveredModels(getKnownModelsForBaseUrl(baseUrl))
+        }
       } catch {
-        if (!cancelled) setDiscoveredModels(null)
+        // API unreachable — fall back to known models for recognized providers
+        if (!cancelled) setDiscoveredModels(getKnownModelsForBaseUrl(baseUrl))
       } finally {
         if (!cancelled) setModelDiscoveryLoading(false)
       }
