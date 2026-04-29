@@ -1,4 +1,4 @@
-﻿import * as React from 'react'
+import * as React from 'react'
 
 import type { LocalJSXCommandCall, LocalJSXCommandOnDone } from '../../types/command.js'
 import { COMMON_HELP_ARGS, COMMON_INFO_ARGS } from '../../constants/xml.js'
@@ -1090,14 +1090,54 @@ function CodexCredentialStep({
 
   const options: OptionWithDescription<string>[] = [
     {
+      label: 'gpt-5.5',
+      value: 'gpt-5.5',
+      description: 'Latest GPT-5.5 — strongest reasoning',
+    },
+    {
+      label: 'gpt-5.4',
+      value: 'gpt-5.4',
+      description: 'GPT-5.4 — high reasoning capacity',
+    },
+    {
+      label: 'gpt-5.3-codex',
+      value: 'gpt-5.3-codex',
+      description: 'GPT-5.3 Codex — optimized for code',
+    },
+    {
+      label: 'gpt-5-mini',
+      value: 'gpt-5-mini',
+      description: 'GPT-5 Mini — fast and lightweight',
+    },
+    {
       label: 'codexplan',
       value: 'codexplan',
-      description: 'GPT-5.4 with higher reasoning on the Codex backend',
+      description: 'Codex Plan — higher reasoning on Codex backend',
     },
     {
       label: 'codexspark',
       value: 'codexspark',
-      description: 'Faster Codex Spark tool loop profile',
+      description: 'Codex Spark — fast tool loop profile',
+    },
+    {
+      label: 'o4-mini',
+      value: 'o4-mini',
+      description: 'O4 Mini — fast reasoning model',
+    },
+    {
+      label: 'o3',
+      value: 'o3',
+      description: 'O3 — advanced reasoning',
+    },
+    {
+      label: 'gpt-4.1',
+      value: 'gpt-4.1',
+      description: 'GPT-4.1 — solid general purpose',
+    },
+    {
+      label: 'gpt-4.1-mini',
+      value: 'gpt-4.1-mini',
+      description: 'GPT-4.1 Mini — fast and cheap',
     },
   ]
 
@@ -1110,10 +1150,10 @@ function CodexCredentialStep({
         </Text>
         <Select
           options={options}
-          defaultValue="codexplan"
-          defaultFocusValue="codexplan"
+          defaultValue="gpt-5.5"
+          defaultFocusValue="gpt-5.5"
           inlineDescriptions
-          visibleOptionCount={options.length}
+          visibleOptionCount={Math.min(8, options.length)}
           onChange={(value: string) => {
             const env = buildCodexProfileEnv({
               model: value,

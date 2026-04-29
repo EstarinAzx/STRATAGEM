@@ -314,6 +314,11 @@ function getCodexSparkOption(): ModelOption {
 function getCodexModelOptions(): ModelOption[] {
   return [
     {
+      value: 'gpt-5.5',
+      label: 'gpt-5.5',
+      description: 'GPT-5.5 — latest and strongest reasoning',
+    },
+    {
       value: 'gpt-5.4',
       label: 'gpt-5.4',
       description: 'GPT-5.4 with high reasoning',
@@ -329,9 +334,34 @@ function getCodexModelOptions(): ModelOption[] {
       description: 'GPT-5.3 Codex Spark for fast tool loops',
     },
     {
+      value: 'gpt-5-mini',
+      label: 'gpt-5-mini',
+      description: 'GPT-5 Mini — fast and lightweight',
+    },
+    {
+      value: 'o4-mini',
+      label: 'o4-mini',
+      description: 'O4 Mini — fast reasoning model',
+    },
+    {
+      value: 'o3',
+      label: 'o3',
+      description: 'O3 — advanced reasoning',
+    },
+    {
       value: 'codexspark',
       label: 'codexspark',
-      description: 'GPT-5.3 Codex Spark alias for fast tool loops',
+      description: 'Codex Spark alias for fast tool loops',
+    },
+    {
+      value: 'gpt-4.1',
+      label: 'gpt-4.1',
+      description: 'GPT-4.1 — solid general purpose',
+    },
+    {
+      value: 'gpt-4.1-mini',
+      label: 'gpt-4.1-mini',
+      description: 'GPT-4.1 Mini — fast and cheap',
     },
     {
       value: 'gpt-5.2-codex',
