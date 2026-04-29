@@ -250,6 +250,8 @@ export function getProjectDirsUpToHome(
       break
     }
 
+    // Check .stratagem first, then .claude for backward compatibility
+    const stratagemSubdir = join(current, '.stratagem', subdir)
     const claudeSubdir = join(current, '.claude', subdir)
     // Filter to existing dirs. This is a perf filter (avoids spawning
     // ripgrep on non-existent dirs downstream) and the worktree fallback
@@ -257,11 +259,14 @@ export function getProjectDirsUpToHome(
     // handling instead of existsSync — re-throws unexpected errors rather
     // than silently swallowing them. Downstream loadMarkdownFiles handles
     // the TOCTOU window (dir disappearing before read) gracefully.
-    try {
-      statSync(claudeSubdir)
-      dirs.push(claudeSubdir)
-    } catch (e: unknown) {
-      if (!isFsInaccessible(e)) throw e
+    for (const candidate of [stratagemSubdir, claudeSubdir]) {
+      try {
+        statSync(candidate)
+        dirs.push(candidate)
+        break // Use the first one found (.stratagem wins)
+      } catch (e: unknown) {
+        if (!isFsInaccessible(e)) throw e
+      }
     }
 
     // Stop after processing the git root directory - this prevents commands from parent
@@ -320,16 +325,29 @@ export const loadMarkdownFilesForSubdir = memoize(
     const gitRoot = findGitRoot(cwd)
     const canonicalRoot = findCanonicalGitRoot(cwd)
     if (gitRoot && canonicalRoot && canonicalRoot !== gitRoot) {
-      const worktreeSubdir = normalizePathForComparison(
+      const worktreeStratagemSubdir = normalizePathForComparison(
+        join(gitRoot, '.stratagem', subdir),
+      )
+      const worktreeClaudeSubdir = normalizePathForComparison(
         join(gitRoot, '.claude', subdir),
       )
       const worktreeHasSubdir = projectDirs.some(
-        dir => normalizePathForComparison(dir) === worktreeSubdir,
+        dir => {
+          const norm = normalizePathForComparison(dir)
+          return norm === worktreeStratagemSubdir || norm === worktreeClaudeSubdir
+        },
       )
       if (!worktreeHasSubdir) {
+        // Try .stratagem first, then .claude
+        const mainStratagemSubdir = join(canonicalRoot, '.stratagem', subdir)
         const mainClaudeSubdir = join(canonicalRoot, '.claude', subdir)
-        if (!projectDirs.includes(mainClaudeSubdir)) {
-          projectDirs.push(mainClaudeSubdir)
+        if (!projectDirs.includes(mainStratagemSubdir) && !projectDirs.includes(mainClaudeSubdir)) {
+          try {
+            statSync(mainStratagemSubdir)
+            projectDirs.push(mainStratagemSubdir)
+          } catch {
+            projectDirs.push(mainClaudeSubdir)
+          }
         }
       }
     }

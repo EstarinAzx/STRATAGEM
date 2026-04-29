@@ -77,6 +77,7 @@ export const DANGEROUS_DIRECTORIES = [
   '.idea',
   '.claude',
   '.openclaude',
+  '.stratagem',
 ] as const
 
 /**
@@ -107,8 +108,16 @@ export function getClaudeSkillScope(
 
   const bases = [
     {
+      dir: expandPath(join(getOriginalCwd(), '.stratagem', 'skills')),
+      prefix: '/.stratagem/skills/',
+    },
+    {
       dir: expandPath(join(getOriginalCwd(), '.claude', 'skills')),
       prefix: '/.claude/skills/',
+    },
+    {
+      dir: expandPath(join(homedir(), '.stratagem', 'skills')),
+      prefix: '~/.stratagem/skills/',
     },
     {
       dir: expandPath(join(homedir(), '.claude', 'skills')),
@@ -212,7 +221,9 @@ export function isClaudeSettingsPath(filePath: string): boolean {
     normalizedPath.endsWith(`${sep}.openclaude${sep}settings.json`) ||
     normalizedPath.endsWith(`${sep}.openclaude${sep}settings.local.json`) ||
     normalizedPath.endsWith(`${sep}.claude${sep}settings.json`) ||
-    normalizedPath.endsWith(`${sep}.claude${sep}settings.local.json`)
+    normalizedPath.endsWith(`${sep}.claude${sep}settings.local.json`) ||
+    normalizedPath.endsWith(`${sep}.stratagem${sep}settings.json`) ||
+    normalizedPath.endsWith(`${sep}.stratagem${sep}settings.local.json`)
   ) {
     // Include .claude/settings.json even for other projects
     return true
@@ -239,6 +250,9 @@ function isClaudeConfigFilePath(filePath: string): boolean {
   const openCommandsDir = join(getOriginalCwd(), '.openclaude', 'commands')
   const openAgentsDir = join(getOriginalCwd(), '.openclaude', 'agents')
   const openSkillsDir = join(getOriginalCwd(), '.openclaude', 'skills')
+  const stratagemCommandsDir = join(getOriginalCwd(), '.stratagem', 'commands')
+  const stratagemAgentsDir = join(getOriginalCwd(), '.stratagem', 'agents')
+  const stratagemSkillsDir = join(getOriginalCwd(), '.stratagem', 'skills')
 
   return (
     pathInWorkingPath(filePath, commandsDir) ||
@@ -246,7 +260,10 @@ function isClaudeConfigFilePath(filePath: string): boolean {
     pathInWorkingPath(filePath, skillsDir) ||
     pathInWorkingPath(filePath, openCommandsDir) ||
     pathInWorkingPath(filePath, openAgentsDir) ||
-    pathInWorkingPath(filePath, openSkillsDir)
+    pathInWorkingPath(filePath, openSkillsDir) ||
+    pathInWorkingPath(filePath, stratagemCommandsDir) ||
+    pathInWorkingPath(filePath, stratagemAgentsDir) ||
+    pathInWorkingPath(filePath, stratagemSkillsDir)
   )
 }
 

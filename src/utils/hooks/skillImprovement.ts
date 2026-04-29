@@ -194,8 +194,16 @@ export async function applySkillImprovement(
   const { join } = await import('path')
   const fs = await import('fs/promises')
 
-  // Skills live at .claude/skills/<name>/SKILL.md relative to CWD
-  const filePath = join(getCwd(), '.claude', 'skills', skillName, 'SKILL.md')
+  // Skills live at .stratagem/skills/<name>/SKILL.md or .claude/skills/<name>/SKILL.md relative to CWD
+  const stratagemPath = join(getCwd(), '.stratagem', 'skills', skillName, 'SKILL.md')
+  const claudePath = join(getCwd(), '.claude', 'skills', skillName, 'SKILL.md')
+  let filePath: string
+  try {
+    await fs.access(stratagemPath)
+    filePath = stratagemPath
+  } catch {
+    filePath = claudePath
+  }
 
   let currentContent: string
   try {

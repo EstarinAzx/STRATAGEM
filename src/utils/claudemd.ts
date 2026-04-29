@@ -912,7 +912,16 @@ export const getMemoryFiles = memoize(
           )),
         )
 
-        // Try reading .claude/CLAUDE.md (Project)
+        // Try reading .stratagem/STRATAGEM.md first, then .claude/CLAUDE.md (Project)
+        const dotStratagemPath = join(dir, '.stratagem', 'STRATAGEM.md')
+        result.push(
+          ...(await processMemoryFile(
+            dotStratagemPath,
+            'Project',
+            processedPaths,
+            includeExternal,
+          )),
+        )
         const dotClaudePath = join(dir, '.claude', 'CLAUDE.md')
         result.push(
           ...(await processMemoryFile(
@@ -923,7 +932,17 @@ export const getMemoryFiles = memoize(
           )),
         )
 
-        // Try reading .claude/rules/*.md files (Project)
+        // Try reading .stratagem/rules/*.md then .claude/rules/*.md files (Project)
+        const stratagemRulesDir = join(dir, '.stratagem', 'rules')
+        result.push(
+          ...(await processMdRules({
+            rulesDir: stratagemRulesDir,
+            type: 'Project',
+            processedPaths,
+            includeExternal,
+            conditionalRule: false,
+          })),
+        )
         const rulesDir = join(dir, '.claude', 'rules')
         result.push(
           ...(await processMdRules({
@@ -936,8 +955,17 @@ export const getMemoryFiles = memoize(
         )
       }
 
-      // Try reading CLAUDE.local.md (Local) - only if localSettings is enabled
+      // Try reading STRATAGEM.local.md and CLAUDE.local.md (Local) - only if localSettings is enabled
       if (isSettingSourceEnabled('localSettings')) {
+        const stratagemLocalPath = join(dir, 'STRATAGEM.local.md')
+        result.push(
+          ...(await processMemoryFile(
+            stratagemLocalPath,
+            'Local',
+            processedPaths,
+            includeExternal,
+          )),
+        )
         const localPath = join(dir, 'CLAUDE.local.md')
         result.push(
           ...(await processMemoryFile(
@@ -971,7 +999,16 @@ export const getMemoryFiles = memoize(
           )),
         )
 
-        // Try reading .claude/CLAUDE.md from the additional directory
+        // Try reading .stratagem/STRATAGEM.md then .claude/CLAUDE.md from the additional directory
+        const dotStratagemPath = join(dir, '.stratagem', 'STRATAGEM.md')
+        result.push(
+          ...(await processMemoryFile(
+            dotStratagemPath,
+            'Project',
+            processedPaths,
+            includeExternal,
+          )),
+        )
         const dotClaudePath = join(dir, '.claude', 'CLAUDE.md')
         result.push(
           ...(await processMemoryFile(
@@ -982,7 +1019,17 @@ export const getMemoryFiles = memoize(
           )),
         )
 
-        // Try reading .claude/rules/*.md files from the additional directory
+        // Try reading .stratagem/rules/*.md then .claude/rules/*.md files from the additional directory
+        const stratagemRulesDir = join(dir, '.stratagem', 'rules')
+        result.push(
+          ...(await processMdRules({
+            rulesDir: stratagemRulesDir,
+            type: 'Project',
+            processedPaths,
+            includeExternal,
+            conditionalRule: false,
+          })),
+        )
         const rulesDir = join(dir, '.claude', 'rules')
         result.push(
           ...(await processMdRules({
@@ -1453,20 +1500,25 @@ export async function shouldShowClaudeMdExternalIncludesWarning(): Promise<boole
 }
 
 /**
- * Check if a file path is a memory file (AGENTS.md, CLAUDE.md, CLAUDE.local.md, or .claude/rules/*.md)
+ * Check if a file path is a memory file (STRATAGEM.md, AGENTS.md, CLAUDE.md, *.local.md, or .stratagem/rules/*.md, .claude/rules/*.md)
  */
 export function isMemoryFilePath(filePath: string): boolean {
   const name = basename(filePath)
 
-  // Root instruction files or CLAUDE.local.md anywhere
-  if (isProjectInstructionFileName(name) || name === 'CLAUDE.local.md') {
+  // Root instruction files or local variants anywhere
+  if (
+    isProjectInstructionFileName(name) ||
+    name === 'STRATAGEM.local.md' ||
+    name === 'CLAUDE.local.md'
+  ) {
     return true
   }
 
-  // .md files in .claude/rules/ directories
+  // .md files in .stratagem/rules/ or .claude/rules/ directories
   if (
     name.endsWith('.md') &&
-    filePath.includes(`${sep}.claude${sep}rules${sep}`)
+    (filePath.includes(`${sep}.stratagem${sep}rules${sep}`) ||
+     filePath.includes(`${sep}.claude${sep}rules${sep}`))
   ) {
     return true
   }

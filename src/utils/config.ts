@@ -1817,12 +1817,25 @@ export function recordFirstStartTime(): void {
 
 export function getMemoryPath(memoryType: MemoryType): string {
   const cwd = getOriginalCwd()
+  const fs = getFsImplementation()
 
   switch (memoryType) {
-    case 'User':
-      return join(getClaudeConfigHomeDir(), 'CLAUDE.md')
-    case 'Local':
-      return join(cwd, 'CLAUDE.local.md')
+    case 'User': {
+      // Prefer STRATAGEM.md, fallback to CLAUDE.md for backward compat
+      const stratagemPath = join(getClaudeConfigHomeDir(), 'STRATAGEM.md')
+      const claudePath = join(getClaudeConfigHomeDir(), 'CLAUDE.md')
+      try { if (fs.statSync(stratagemPath)) return stratagemPath } catch {}
+      try { if (fs.statSync(claudePath)) return claudePath } catch {}
+      return stratagemPath // Default to new name for creation
+    }
+    case 'Local': {
+      // Prefer STRATAGEM.local.md, fallback to CLAUDE.local.md
+      const stratagemPath = join(cwd, 'STRATAGEM.local.md')
+      const claudePath = join(cwd, 'CLAUDE.local.md')
+      try { if (fs.statSync(stratagemPath)) return stratagemPath } catch {}
+      try { if (fs.statSync(claudePath)) return claudePath } catch {}
+      return stratagemPath // Default to new name for creation
+    }
     case 'Project':
       return join(cwd, PRIMARY_PROJECT_INSTRUCTION_FILE)
     case 'Managed':

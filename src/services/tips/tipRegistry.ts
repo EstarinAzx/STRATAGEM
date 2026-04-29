@@ -1,4 +1,4 @@
-﻿import chalk from 'chalk'
+import chalk from 'chalk'
 import { logForDebugging } from 'src/utils/debug.js'
 import { fileHistoryEnabled } from 'src/utils/fileHistory.js'
 import {
@@ -390,7 +390,7 @@ const externalTips: Tip[] = [
   {
     id: 'custom-commands',
     content: async () =>
-      'Create skills by adding .md files to .claude/skills/ in your project or ~/.claude/skills/ for skills that work in any project',
+      'Create skills by adding .md files to .stratagem/skills/ in your project or ~/.stratagem/skills/ for skills that work in any project',
     cooldownSessions: 15,
     async isRelevant() {
       const config = getGlobalConfig()

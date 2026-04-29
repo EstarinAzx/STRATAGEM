@@ -242,15 +242,20 @@ export function convertToSandboxRuntimeConfig(
   if (cwd !== originalCwd) {
     denyWrite.push(resolve(cwd, '.claude', 'settings.json'))
     denyWrite.push(resolve(cwd, '.claude', 'settings.local.json'))
+    denyWrite.push(resolve(cwd, '.stratagem', 'settings.json'))
+    denyWrite.push(resolve(cwd, '.stratagem', 'settings.local.json'))
   }
 
-  // Block writes to .claude/skills in both original and current working directories.
+  // Block writes to skills in both original and current working directories.
   // The sandbox-runtime's getDangerousDirectories() protects .claude/commands and
-  // .claude/agents but not .claude/skills. Skills have the same privilege level
-  // (auto-discovered, auto-loaded, full Claude capabilities) so they need the
+  // .claude/agents but not skills. Skills have the same privilege level
+  // (auto-discovered, auto-loaded, full capabilities) so they need the
   // same OS-level sandbox protection.
+  // Protect both .stratagem/ and .claude/ for backward compatibility.
+  denyWrite.push(resolve(originalCwd, '.stratagem', 'skills'))
   denyWrite.push(resolve(originalCwd, '.claude', 'skills'))
   if (cwd !== originalCwd) {
+    denyWrite.push(resolve(cwd, '.stratagem', 'skills'))
     denyWrite.push(resolve(cwd, '.claude', 'skills'))
   }
 

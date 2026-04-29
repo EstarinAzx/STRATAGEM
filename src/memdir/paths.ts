@@ -207,12 +207,37 @@ export function hasAutoMemPathOverride(): boolean {
 }
 
 /**
+ * Check if a path is a filesystem root or drive root (e.g. "D:\", "C:\", "/").
+ * These are too broad to use as project scoping keys — they would cause every
+ * project on the drive to share a single memory directory.
+ */
+function isFilesystemRoot(p: string): boolean {
+  const normalized = normalize(p)
+  // Unix root
+  if (normalized === sep) return true
+  // Windows drive root: "C:\" or "D:\"
+  if (/^[A-Za-z]:[/\\]?$/.test(normalized)) return true
+  // Normalized trailing-sep variants: "C:\" already matched by regex
+  if (normalized.length <= 3 && /^[A-Za-z]:/.test(normalized)) return true
+  return false
+}
+
+/**
  * Returns the canonical git repo root if available, otherwise falls back to
  * the stable project root. Uses findCanonicalGitRoot so all worktrees of the
- * same repo share one auto-memory directory (anthropics/claude-code#24382).
+ * same repo share one auto-memory directory.
+ *
+ * SAFETY: If the git root resolves to a filesystem root (e.g. "D:\"), it is
+ * rejected and the project root (CWD) is used instead. A drive-root git repo
+ * is almost always accidental (stray .git) and would cause every project on
+ * that drive to share a single memory directory.
  */
 function getAutoMemBase(): string {
-  return findCanonicalGitRoot(getProjectRoot()) ?? getProjectRoot()
+  const gitRoot = findCanonicalGitRoot(getProjectRoot())
+  if (gitRoot && !isFilesystemRoot(gitRoot)) {
+    return gitRoot
+  }
+  return getProjectRoot()
 }
 
 /**
