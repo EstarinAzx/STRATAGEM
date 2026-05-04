@@ -3,8 +3,8 @@ import {
   getGlobalConfig,
   saveGlobalConfig,
   type ProviderProfile,
-} from './config.js'
-import type { ModelOption } from './model/modelOptions.js'
+} from '../utils/config.js'
+import type { ModelOption } from '../utils/model/modelOptions.js'
 import { getPrimaryModel, parseModelList } from './providerModels.js'
 
 export type ProviderPreset =

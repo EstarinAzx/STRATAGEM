@@ -1,6 +1,6 @@
 // biome-ignore-all assist/source/organizeImports: internal-only import markers must not be reordered
 import { getInitialMainLoopModel } from '../../bootstrap/state.js'
-import { getAdditionalModelOptionsCacheScope } from '../../services/api/providerConfig.js'
+import { getAdditionalModelOptionsCacheScope } from '../../providers/providerConfig.js'
 import {
   isClaudeAISubscriber,
   isMaxSubscriber,

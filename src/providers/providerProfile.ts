@@ -6,14 +6,14 @@ import {
   isCodexBaseUrl,
   resolveCodexApiCredentials,
   resolveProviderRequest,
-} from '../services/api/providerConfig.js'
+} from './providerConfig.js'
 import { parseChatgptAccountId } from '../services/api/codexOAuthShared.js'
 import {
   getGoalDefaultOpenAIModel,
   normalizeRecommendationGoal,
   type RecommendationGoal,
 } from './providerRecommendation.js'
-import { readGeminiAccessToken } from './geminiCredentials.js'
+import { readGeminiAccessToken } from '../utils/geminiCredentials.js'
 import { getOllamaChatBaseUrl } from './providerDiscovery.js'
 import { getProviderValidationError } from './providerValidation.js'
 import {

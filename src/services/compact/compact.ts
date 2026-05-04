@@ -71,7 +71,7 @@ import {
 } from '../../utils/messages.js'
 import { expandPath } from '../../utils/path.js'
 import { getPlan, getPlanFilePath } from '../../utils/plans.js'
-import { getProjectInstructionFilePaths } from '../../utils/projectInstructions.js'
+import { getProjectInstructionFilePaths } from '../../utils/instructionFiles.js'
 import {
   isSessionActivityTrackingActive,
   sendSessionActivitySignal,
@@ -1689,7 +1689,7 @@ function shouldExcludeFromPostCompactRestore(
   }
 
   // Exclude all types of claude.md files
-  // TODO: Refactor to use isMemoryFilePath() from claudemd.ts for consistency
+  // TODO: Refactor to use isMemoryFilePath() from instructionFiles.ts for consistency
   // and to also match child directory memory files (.claude/rules/*.md, etc.)
   try {
     const normalizedMemoryPaths = new Set(

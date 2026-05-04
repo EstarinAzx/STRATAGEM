@@ -1,4 +1,4 @@
-﻿import { PassThrough } from 'node:stream'
+import { PassThrough } from 'node:stream'
 
 import { afterEach, expect, mock, test } from 'bun:test'
 import React from 'react'
@@ -114,7 +114,7 @@ function mockProviderProfilesModule(options?: {
   updateProviderProfile?: (...args: unknown[]) => unknown
   setActiveProviderProfile?: (...args: unknown[]) => unknown
 }): void {
-  mock.module('../utils/providerProfiles.js', () => ({
+  mock.module('../providers/providerProfiles.js', () => ({
     addProviderProfile: options?.addProviderProfile ?? (() => null),
     applyActiveProviderProfileFromConfig: () => {},
     deleteProviderProfile: () => ({ removed: false, activeProfileId: null }),
@@ -188,7 +188,7 @@ function mockProviderManagerDependencies(
     setActiveProviderProfile: options?.setActiveProviderProfile,
   })
 
-  mock.module('../utils/providerDiscovery.js', () => ({
+  mock.module('../providers/providerDiscovery.js', () => ({
     hasLocalOllama: options?.hasLocalOllama ?? (async () => false),
     listOllamaModels: options?.listOllamaModels ?? (async () => []),
   }))
@@ -211,7 +211,7 @@ function mockProviderManagerDependencies(
       options?.codexAsyncRead ?? (async () => undefined),
   }))
 
-  mock.module('../utils/providerProfile.js', () => ({
+  mock.module('../providers/providerProfile.js', () => ({
     applySavedProfileToCurrentSession:
       options?.applySavedProfileToCurrentSession ?? (async () => null),
     buildCodexOAuthProfileEnv: (tokens: {

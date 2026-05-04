@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, mock, test } from 'bun:test'
 
-import type { ProviderProfile } from './config.js'
+import type { ProviderProfile } from '../utils/config.js'
 
 async function importFreshProvidersModule() {
   return import(`./model/providers.ts?ts=${Date.now()}-${Math.random()}`)
@@ -69,7 +69,7 @@ afterEach(() => {
 
 async function importFreshProviderProfileModules() {
   mock.restore()
-  mock.module('./config.js', () => ({
+  mock.module('../utils/config.js', () => ({
     getGlobalConfig: () => mockConfigState,
     saveGlobalConfig: (
       updater: (current: MockConfigState) => MockConfigState,

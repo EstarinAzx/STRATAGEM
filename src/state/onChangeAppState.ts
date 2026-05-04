@@ -9,7 +9,7 @@ import { getGlobalConfig, saveGlobalConfig } from '../utils/config.js'
 import { toError } from '../utils/errors.js'
 import { logError } from '../utils/log.js'
 import { applyConfigEnvironmentVariables } from '../utils/managedEnv.js'
-import { persistActiveProviderProfileModel } from '../utils/providerProfiles.js'
+import { persistActiveProviderProfileModel } from '../providers/providerProfiles.js'
 import {
   permissionModeFromString,
   toExternalPermissionMode,

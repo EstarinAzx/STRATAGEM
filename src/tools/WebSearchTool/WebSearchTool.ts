@@ -13,7 +13,7 @@ import { fetchWithProxyRetry } from '../../services/api/fetchWithProxyRetry.js'
 import {
   resolveCodexApiCredentials,
   resolveProviderRequest,
-} from '../../services/api/providerConfig.js'
+} from '../../providers/providerConfig.js'
 import { buildTool, type ToolDef } from '../../Tool.js'
 import { lazySchema } from '../../utils/lazySchema.js'
 import { logError } from '../../utils/log.js'

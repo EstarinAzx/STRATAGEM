@@ -18,12 +18,12 @@ import type { ModelOption } from '../../utils/model/modelOptions.js'
 import {
   getLocalOpenAICompatibleProviderLabel,
   listOpenAICompatibleModels,
-} from '../../utils/providerDiscovery.js'
+} from '../../providers/providerDiscovery.js'
 import { getClaudeCodeUserAgent } from '../../utils/userAgent.js'
 import {
   getAdditionalModelOptionsCacheScope,
   resolveProviderRequest,
-} from './providerConfig.js'
+} from '../../providers/providerConfig.js'
 
 const bootstrapResponseSchema = lazySchema(() =>
   z.object({

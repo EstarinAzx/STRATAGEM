@@ -5,8 +5,8 @@
  * Addresses: https://github.com/Gitlawb/openclaude/issues/55
  */
 
-import { isLocalProviderUrl, resolveProviderRequest } from '../services/api/providerConfig.js'
-import { getLocalOpenAICompatibleProviderLabel } from '../utils/providerDiscovery.js'
+import { isLocalProviderUrl, resolveProviderRequest } from '../providers/providerConfig.js'
+import { getLocalOpenAICompatibleProviderLabel } from '../providers/providerDiscovery.js'
 import { getSettings_DEPRECATED } from '../utils/settings/settings.js'
 import { parseUserSpecifiedModel } from '../utils/model/model.js'
 

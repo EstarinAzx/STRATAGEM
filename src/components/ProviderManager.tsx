@@ -1,7 +1,7 @@
 import axios from 'axios'
 import figures from 'figures'
 import * as React from 'react'
-import { DEFAULT_CODEX_BASE_URL } from '../services/api/providerConfig.js'
+import { DEFAULT_CODEX_BASE_URL } from '../providers/providerConfig.js'
 import { Box, Text } from '../ink.js'
 import { useKeybinding } from '../keybindings/useKeybinding.js'
 import type { ProviderProfile } from '../utils/config.js'
@@ -10,13 +10,13 @@ import {
   readCodexCredentialsAsync,
 } from '../utils/codexCredentials.js'
 import { isBareMode, isEnvTruthy } from '../utils/envUtils.js'
-import { getPrimaryModel, hasMultipleModels, parseModelList } from '../utils/providerModels.js'
+import { getPrimaryModel, hasMultipleModels, parseModelList } from '../providers/providerModels.js'
 import {
   applySavedProfileToCurrentSession,
   buildCodexOAuthProfileEnv,
   clearPersistedCodexOAuthProfile,
   createProfileFile,
-} from '../utils/providerProfile.js'
+} from '../providers/providerProfile.js'
 import {
   addProviderProfile,
   applyActiveProviderProfileFromConfig,
@@ -28,7 +28,7 @@ import {
   type ProviderPreset,
   type ProviderProfileInput,
   updateProviderProfile,
-} from '../utils/providerProfiles.js'
+} from '../providers/providerProfiles.js'
 import {
   clearGithubModelsToken,
   GITHUB_MODELS_HYDRATED_ENV_MARKER,
@@ -39,11 +39,11 @@ import {
 import {
   hasLocalOllama,
   listOllamaModels,
-} from '../utils/providerDiscovery.js'
+} from '../providers/providerDiscovery.js'
 import {
   rankOllamaModels,
   recommendOllamaModel,
-} from '../utils/providerRecommendation.js'
+} from '../providers/providerRecommendation.js'
 import { updateSettingsForSource } from '../utils/settings/settings.js'
 import {
   type OptionWithDescription,

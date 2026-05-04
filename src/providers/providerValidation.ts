@@ -4,13 +4,13 @@ import {
   isLocalProviderUrl,
   resolveCodexApiCredentials,
   resolveProviderRequest,
-} from '../services/api/providerConfig.js'
-import { getGlobalClaudeFile } from './env.js'
-import { isBareMode } from './envUtils.js'
+} from './providerConfig.js'
+import { getGlobalClaudeFile } from '../utils/env.js'
+import { isBareMode } from '../utils/envUtils.js'
 import {
   type GeminiResolvedCredential,
   resolveGeminiCredential,
-} from './geminiAuth.js'
+} from '../utils/geminiAuth.js'
 import { PROFILE_FILE_NAME } from './providerProfile.js'
 import { redactSecretValueForDisplay } from './providerSecrets.js'
 

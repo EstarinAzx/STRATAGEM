@@ -1,4 +1,4 @@
-﻿import { c as _c } from "react-compiler-runtime";
+import { c as _c } from "react-compiler-runtime";
 // biome-ignore-all assist/source/organizeImports: internal-only import markers must not be reordered
 import { feature } from 'bun:bundle';
 import { Box, Text, useTheme, useThemeSetting, useTerminalFocus } from '../../ink.js';
@@ -27,7 +27,7 @@ import { Dialog } from '../design-system/Dialog.js';
 import { Select } from '../CustomSelect/index.js';
 import { OutputStylePicker } from '../OutputStylePicker.js';
 import { LanguagePicker } from '../LanguagePicker.js';
-import { getExternalClaudeMdIncludes, getMemoryFiles, hasExternalClaudeMdIncludes } from 'src/utils/claudemd.js';
+import { getExternalClaudeMdIncludes, getMemoryFiles, hasExternalClaudeMdIncludes } from 'src/utils/instructionFiles.js';
 import { KeyboardShortcutHint } from '../design-system/KeyboardShortcutHint.js';
 import { ConfigurableShortcutHint } from '../ConfigurableShortcutHint.js';
 import { Byline } from '../design-system/Byline.js';
@@ -112,7 +112,7 @@ export function Config({
     rows
   } = useTerminalSize();
   // contentHeight is set by Settings.tsx (same value passed to Tabs to fix
-  // pane height across all tabs — prevents layout jank when switching).
+  // pane height across all tabs � prevents layout jank when switching).
   // Reserve ~10 rows for chrome (search box, gaps, footer, scroll hints).
   // Fallback calc for standalone rendering (tests).
   const paneCap = contentHeight ?? Math.min(Math.floor(rows * 0.8), 30);
@@ -123,11 +123,11 @@ export function Config({
   const isFastMode = useAppState(s_2 => isFastModeEnabled() ? s_2.fastMode : false);
   const promptSuggestionEnabled = useAppState(s_3 => s_3.promptSuggestionEnabled);
   // Show auto in the default-mode dropdown when the user has opted in OR the
-  // config is fully 'enabled' — even if currently circuit-broken ('disabled'),
+  // config is fully 'enabled' � even if currently circuit-broken ('disabled'),
   // an opted-in user should still see it in settings (it's a temporary state).
   const showAutoInDefaultModePicker = feature('TRANSCRIPT_CLASSIFIER') ? hasAutoModeOptInAnySource() || getAutoModeEnabledState() === 'enabled' : false;
   // Chat/Transcript view picker is visible to entitled users (pass the GB
-  // gate) even if they haven't opted in this session — it IS the persistent
+  // gate) even if they haven't opted in this session � it IS the persistent
   // opt-in. 'chat' written here is read at next startup by main.tsx which
   // sets userMsgOptIn if still entitled.
   /* eslint-disable @typescript-eslint/no-require-imports */
@@ -142,12 +142,12 @@ export function Config({
   // returns merged-across-sources which can't tell us what to delete vs
   // restore; per-source snapshots + updateSettingsForSource's
   // undefined-deletes-key semantics can. Lazy-init via useState (no setter) to
-  // avoid reading settings files on every render — useRef evaluates its arg
+  // avoid reading settings files on every render � useRef evaluates its arg
   // eagerly even though only the first result is kept.
   const [initialLocalSettings] = useState(() => getSettingsForSource('localSettings'));
   const [initialUserSettings] = useState(() => getSettingsForSource('userSettings'));
   const initialThemeSetting = React.useRef(themeSetting);
-  // AppState fields Config may modify — snapshot once at mount.
+  // AppState fields Config may modify � snapshot once at mount.
   const store = useAppStateStore();
   const [initialAppState] = useState(() => {
     const s_4 = store.getState();
@@ -164,10 +164,10 @@ export function Config({
       settings: s_4.settings
     };
   });
-  // Bootstrap state snapshot — userMsgOptIn is outside AppState, so
+  // Bootstrap state snapshot � userMsgOptIn is outside AppState, so
   // revertChanges needs to restore it separately. Without this, cycling
   // defaultView to 'chat' then Escape leaves the tool active while the
-  // display filter reverts — the exact ambient-activation behavior this
+  // display filter reverts � the exact ambient-activation behavior this
   // PR's entitlement/opt-in split is meant to prevent.
   const [initialUserMsgOptIn] = useState(() => getUserMsgOptIn());
   // Set on first user-visible change; gates revertChanges() on Escape so
@@ -189,7 +189,7 @@ export function Config({
   });
 
   // Tell the parent when Config's own Esc handler is active so Settings cedes
-  // confirm:no. Only true when search mode owns the keyboard — not when the
+  // confirm:no. Only true when search mode owns the keyboard � not when the
   // tab header is focused (then Settings must handle Esc-to-close).
   const ownsEsc = isSearchMode && !headerFocused;
   React.useEffect(() => {
@@ -212,7 +212,7 @@ export function Config({
       mainLoopModelForSession: null
     }));
     setChanges(prev_0 => {
-      const valStr = modelDisplayString(value) + (isBilledAsExtraUsage(value, false, isOpus1mMergeEnabled()) ? ' · Billed as extra usage' : '');
+      const valStr = modelDisplayString(value) + (isBilledAsExtraUsage(value, false, isOpus1mMergeEnabled()) ? ' � Billed as extra usage' : '');
       if ('model' in prev_0) {
         const {
           model,
@@ -742,7 +742,7 @@ export function Config({
   }, ...(showDefaultViewPicker ? [{
     id: 'defaultView',
     label: 'What you see by default',
-    // 'default' means the setting is unset — currently resolves to
+    // 'default' means the setting is unset � currently resolves to
     // transcript (main.tsx falls through when defaultView !== 'chat').
     // String() narrows the conditional-schema-spread union to string.
     value: settingsData?.defaultView === undefined ? 'default' : String(settingsData.defaultView),
@@ -766,7 +766,7 @@ export function Config({
         };
       });
       // Keep userMsgOptIn in sync so the tool list follows the view.
-      // Two-way now (same as /brief) — accepting a cache invalidation
+      // Two-way now (same as /brief) � accepting a cache invalidation
       // is better than leaving the tool on after switching away.
       // Reverted on Escape via initialUserMsgOptIn snapshot.
       setUserMsgOptIn(nextBrief);
@@ -945,7 +945,7 @@ export function Config({
       onChange() {}
     }];
   })() : []),
-  // Remote at startup toggle — gated on build flag + GrowthBook + policy
+  // Remote at startup toggle � gated on build flag + GrowthBook + policy
   ...(feature('BRIDGE_MODE') && isBridgeEnabled() ? [{
     id: 'remoteControlAtStartup',
     label: 'Enable Remote Control for all sessions',
@@ -1104,7 +1104,7 @@ export function Config({
   // Enter: keep all changes (already persisted by onChange handlers), close
   // with a summary of what changed.
   const handleSaveAndClose = useCallback(() => {
-    // Submenu handling: each submenu has its own Enter/Esc — don't close
+    // Submenu handling: each submenu has its own Enter/Esc � don't close
     // the whole panel while one is open.
     if (showSubmenu !== null) {
       return;
@@ -1198,7 +1198,7 @@ export function Config({
   const revertChanges = useCallback(() => {
     // Theme: restores ThemeProvider React state. Must run before the global
     // config overwrite since setTheme internally calls saveGlobalConfig with
-    // a partial update — we want the full snapshot to be the last write.
+    // a partial update � we want the full snapshot to be the last write.
     if (themeSetting !== initialThemeSetting.current) {
       setTheme(initialThemeSetting.current);
     }
@@ -1228,11 +1228,11 @@ export function Config({
           useAutoModeDuringPlan?: boolean;
         } | undefined)?.useAutoModeDuringPlan
       } : {}),
-      // ThemePicker's Ctrl+T writes this key directly — include it so the
+      // ThemePicker's Ctrl+T writes this key directly � include it so the
       // disk state reverts along with the in-memory AppState.settings restore.
       syntaxHighlightingDisabled: iu?.syntaxHighlightingDisabled,
       // permissions: the defaultMode onChange (above) spreads the MERGED
-      // settingsData.permissions into userSettings — project/policy allow/deny
+      // settingsData.permissions into userSettings � project/policy allow/deny
       // arrays can leak to disk. Spread the full initial snapshot so the
       // mergeWith array-customizer (settings.ts:375) replaces leaked arrays.
       // Explicitly include defaultMode so undefined triggers the customizer's
@@ -1256,7 +1256,7 @@ export function Config({
       replBridgeEnabled: ia.replBridgeEnabled,
       replBridgeOutboundOnly: ia.replBridgeOutboundOnly,
       settings: ia.settings,
-      // Reconcile auto-mode state after useAutoModeDuringPlan revert above —
+      // Reconcile auto-mode state after useAutoModeDuringPlan revert above �
       // the onChange handler may have activated/deactivated auto mid-plan.
       toolPermissionContext: transitionPlanAutoMode(prev_23.toolPermissionContext)
     }));
@@ -1283,13 +1283,13 @@ export function Config({
 
   // Disable when submenu is open so the submenu's Dialog handles ESC, and in
   // search mode so the onKeyDown handler (which clears-then-exits search)
-  // wins — otherwise Escape in search would jump straight to revert+close.
+  // wins � otherwise Escape in search would jump straight to revert+close.
   useKeybinding('confirm:no', handleEscape, {
     context: 'Settings',
     isActive: showSubmenu === null && !isSearchMode && !headerFocused
   });
   // Save-and-close fires on Enter only when not in search mode (Enter there
-  // exits search to the list — see the isSearchMode branch in handleKeyDown).
+  // exits search to the list � see the isSearchMode branch in handleKeyDown).
   useKeybinding('settings:close', handleSaveAndClose, {
     context: 'Settings',
     isActive: showSubmenu === null && !isSearchMode && !headerFocused
@@ -1317,7 +1317,7 @@ export function Config({
       return;
     }
     if (setting_0.id === 'theme' || setting_0.id === 'model' || setting_0.id === 'teammateDefaultModel' || setting_0.id === 'showExternalIncludesDialog' || setting_0.id === 'outputStyle' || setting_0.id === 'language') {
-      // managedEnum items open a submenu — isDirty is set by the submenu's
+      // managedEnum items open a submenu � isDirty is set by the submenu's
       // completion callback, not here (submenu may be cancelled).
       switch (setting_0.id) {
         case 'theme':
@@ -1393,9 +1393,9 @@ export function Config({
   useKeybindings({
     'select:previous': () => {
       if (selectedIndex === 0) {
-        // ↑ at top enters search mode so users can type-to-filter after
+        // ? at top enters search mode so users can type-to-filter after
         // reaching the list boundary. Wheel-up (scroll:lineUp) clamps
-        // instead — overshoot shouldn't move focus away from the list.
+        // instead � overshoot shouldn't move focus away from the list.
         setShowThinkingWarning(false);
         setIsSearchMode(true);
         setScrollOffset(0);
@@ -1405,7 +1405,7 @@ export function Config({
     },
     'select:next': () => moveSelection(1),
     // Wheel. ScrollKeybindingHandler's scroll:line* returns false (not
-    // consumed) when the ScrollBox content fits — which it always does
+    // consumed) when the ScrollBox content fits � which it always does
     // here because the list is paginated (slice). The event falls through
     // to this handler which navigates the list, clamping at boundaries.
     'scroll:lineUp': () => moveSelection(-1),
@@ -1426,7 +1426,7 @@ export function Config({
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
     if (showSubmenu !== null) return;
     if (headerFocused) return;
-    // Search mode: Esc clears then exits, Enter/↓ moves to the list.
+    // Search mode: Esc clears then exits, Enter/? moves to the list.
     if (isSearchMode) {
       if (e.key === 'escape') {
         e.preventDefault();
@@ -1454,7 +1454,7 @@ export function Config({
       return;
     }
     // Fallback: printable characters (other than those bound to actions)
-    // enter search mode. Carve out j/k// — useKeybindings (still on the
+    // enter search mode. Carve out j/k// � useKeybindings (still on the
     // useInput path) consumes these via stopImmediatePropagation, but
     // onKeyDown dispatches independently so we must skip them explicitly.
     if (e.ctrl || e.meta) return;
@@ -1507,7 +1507,7 @@ export function Config({
         setTabsHidden(false);
         // First-open-then-Enter from unset: picker highlights "Default"
         // (initial=null) and confirming would write null, silently
-        // switching Opus-fallback → follow-leader. Treat as no-op.
+        // switching Opus-fallback ? follow-leader. Treat as no-op.
         if (globalConfig.teammateDefaultModel === undefined && model_1 === null) {
           return;
         }
@@ -1671,7 +1671,7 @@ export function Config({
         minimum_version_set: choice === 'stay'
       });
     }} /> : <Box flexDirection="column" gap={1} marginY={insideModal ? undefined : 1}>
-          <SearchBox query={searchQuery} isFocused={isSearchMode && !headerFocused} isTerminalFocused={isTerminalFocused} cursorOffset={searchCursorOffset} placeholder="Search settings…" />
+          <SearchBox query={searchQuery} isFocused={isSearchMode && !headerFocused} isTerminalFocused={isTerminalFocused} cursorOffset={searchCursorOffset} placeholder="Search settings�" />
           <Box flexDirection="column">
             {filteredSettingsItems.length === 0 ? <Text dimColor italic>
                 No settings match &quot;{searchQuery}&quot;
@@ -1732,15 +1732,15 @@ export function Config({
           </Box>
           {headerFocused ? <Text dimColor>
               <Byline>
-                <KeyboardShortcutHint shortcut="←/→ tab" action="switch" />
-                <KeyboardShortcutHint shortcut="↓" action="return" />
+                <KeyboardShortcutHint shortcut="?/? tab" action="switch" />
+                <KeyboardShortcutHint shortcut="?" action="return" />
                 <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="close" />
               </Byline>
             </Text> : isSearchMode ? <Text dimColor>
               <Byline>
                 <Text>Type to filter</Text>
-                <KeyboardShortcutHint shortcut="Enter/↓" action="select" />
-                <KeyboardShortcutHint shortcut="↑" action="tabs" />
+                <KeyboardShortcutHint shortcut="Enter/?" action="select" />
+                <KeyboardShortcutHint shortcut="?" action="tabs" />
                 <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="clear" />
               </Byline>
             </Text> : <Text dimColor>

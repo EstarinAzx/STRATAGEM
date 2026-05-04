@@ -22,7 +22,7 @@ import {
   isLocalProviderUrl,
   resolveCodexApiCredentials,
   resolveProviderRequest,
-} from '../../services/api/providerConfig.js'
+} from '../../providers/providerConfig.js'
 import {
   applySavedProfileToCurrentSession as applySharedProfileToCurrentSession,
   buildCodexOAuthProfileEnv as buildSharedCodexOAuthProfileEnv,
@@ -46,7 +46,7 @@ import {
   type ProfileEnv,
   type ProfileFile,
   type ProviderProfile,
-} from '../../utils/providerProfile.js'
+} from '../../providers/providerProfile.js'
 import {
   getGeminiProjectIdHint,
   mayHaveGeminiAdcCredentials,
@@ -62,13 +62,13 @@ import {
   rankOllamaModels,
   recommendOllamaModel,
   type RecommendationGoal,
-} from '../../utils/providerRecommendation.js'
+} from '../../providers/providerRecommendation.js'
 import {
   getOllamaChatBaseUrl,
   getLocalOpenAICompatibleProviderLabel,
   hasLocalOllama,
   listOllamaModels,
-} from '../../utils/providerDiscovery.js'
+} from '../../providers/providerDiscovery.js'
 
 type ProviderChoice = 'auto' | ProviderProfile | 'codex-oauth' | 'clear'
 

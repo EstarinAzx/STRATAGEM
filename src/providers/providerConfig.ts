@@ -7,12 +7,12 @@ import {
   isCodexRefreshFailureCoolingDown,
   readCodexCredentials,
   type CodexCredentialBlob,
-} from '../../utils/codexCredentials.js'
-import { isEnvTruthy } from '../../utils/envUtils.js'
+} from '../utils/codexCredentials.js'
+import { isEnvTruthy } from '../utils/envUtils.js'
 import {
   asTrimmedString,
   parseChatgptAccountId,
-} from './codexOAuthShared.js'
+} from '../services/api/codexOAuthShared.js'
 
 export const DEFAULT_OPENAI_BASE_URL = 'https://api.openai.com/v1'
 export const DEFAULT_CODEX_BASE_URL = 'https://chatgpt.com/backend-api/codex'

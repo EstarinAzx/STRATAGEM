@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import test from 'node:test'
 
-import { DEFAULT_CODEX_BASE_URL } from '../services/api/providerConfig.ts'
+import { DEFAULT_CODEX_BASE_URL } from './providerConfig.ts'
 import {
   buildStartupEnvFromProfile,
   buildAtomicChatProfileEnv,

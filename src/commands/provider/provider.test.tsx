@@ -15,7 +15,7 @@ import {
   ProviderWizard,
   TextEntryDialog,
 } from './provider.js'
-import { createProfileFile } from '../../utils/providerProfile.js'
+import { createProfileFile } from '../../providers/providerProfile.js'
 
 const SYNC_START = '\x1B[?2026h'
 const SYNC_END = '\x1B[?2026l'
@@ -372,9 +372,9 @@ test('buildCodexOAuthProfileEnv uses the fresh OAuth account id without persisti
 })
 
 test('buildCodexProfileEnv derives oauth source from secure storage when no explicit source is provided', async () => {
-  const actualProviderConfig = await import('../../services/api/providerConfig.js')
+  const actualProviderConfig = await import('../../providers/providerConfig.js')
 
-  mock.module('../../services/api/providerConfig.js', () => ({
+  mock.module('../../providers/providerConfig.js', () => ({
     ...actualProviderConfig,
     resolveCodexApiCredentials: () => ({
       apiKey: 'stored-access-token',
@@ -385,7 +385,7 @@ test('buildCodexProfileEnv derives oauth source from secure storage when no expl
 
   // @ts-expect-error cache-busting query string for Bun module mocks
   const { buildCodexProfileEnv } = await import(
-    '../../utils/providerProfile.js?secure-storage-codex-source'
+    '../../providers/providerProfile.js?secure-storage-codex-source'
   )
 
   const env = buildCodexProfileEnv({
@@ -404,7 +404,7 @@ test('buildCodexProfileEnv derives oauth source from secure storage when no expl
 test('applySavedProfileToCurrentSession switches the current env to the saved Codex profile', async () => {
   // @ts-expect-error cache-busting query string for Bun module mocks
   const { applySavedProfileToCurrentSession } = await import(
-    '../../utils/providerProfile.js?apply-saved-profile-codex'
+    '../../providers/providerProfile.js?apply-saved-profile-codex'
   )
   const processEnv: NodeJS.ProcessEnv = {
     CLAUDE_CODE_USE_OPENAI: '1',
@@ -444,7 +444,7 @@ test('applySavedProfileToCurrentSession switches the current env to the saved Co
 test('applySavedProfileToCurrentSession ignores stale Codex env overrides for OAuth-backed profiles', async () => {
   // @ts-expect-error cache-busting query string for Bun module mocks
   const { applySavedProfileToCurrentSession } = await import(
-    '../../utils/providerProfile.js?apply-saved-profile-codex-oauth'
+    '../../providers/providerProfile.js?apply-saved-profile-codex-oauth'
   )
   const processEnv: NodeJS.ProcessEnv = {
     CLAUDE_CODE_USE_OPENAI: '1',

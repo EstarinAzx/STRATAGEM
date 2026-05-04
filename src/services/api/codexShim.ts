@@ -3,7 +3,7 @@ import { fetchWithProxyRetry } from './fetchWithProxyRetry.js'
 import type {
   ResolvedCodexCredentials,
   ResolvedProviderRequest,
-} from './providerConfig.js'
+} from '../../providers/providerConfig.js'
 import { sanitizeSchemaForOpenAICompat } from './openaiSchemaSanitizer.js'
 import {
   looksLikeLeakedReasoningPrefix,

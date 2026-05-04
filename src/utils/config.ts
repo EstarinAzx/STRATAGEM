@@ -31,7 +31,7 @@ import { normalizePathForConfigKey } from './path.js'
 import { getEssentialTrafficOnlyReason } from './privacyLevel.js'
 import { getManagedFilePath } from './settings/managedPath.js'
 import type { ThemeSetting } from './theme.js'
-import { PRIMARY_PROJECT_INSTRUCTION_FILE } from './projectInstructions.js'
+import { PRIMARY_PROJECT_INSTRUCTION_FILE } from './instructionFiles.js'
 
 /* eslint-disable @typescript-eslint/no-require-imports */
 const teamMemPaths = feature('TEAMMEM')

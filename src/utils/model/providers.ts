@@ -1,5 +1,5 @@
 import type { AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS } from '../../services/analytics/index.js'
-import { shouldUseCodexTransport } from '../../services/api/providerConfig.js'
+import { shouldUseCodexTransport } from '../../providers/providerConfig.js'
 import { isEnvTruthy } from '../envUtils.js'
 
 export type APIProvider =

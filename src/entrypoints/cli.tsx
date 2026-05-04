@@ -1,18 +1,18 @@
-﻿import { feature } from 'bun:bundle';
+import { feature } from 'bun:bundle';
 import {
   applyProfileEnvToProcessEnv,
   buildStartupEnvFromProfile,
-} from '../utils/providerProfile.js'
+} from '../providers/providerProfile.js'
 import {
   getProviderValidationError,
   validateProviderEnvOrExit,
-} from '../utils/providerValidation.js'
+} from '../providers/providerValidation.js'
 
 // OpenClaude: polyfill globalThis.File for Node < 20.
 // undici v7 references `File` at module evaluation time (webidl type
 // assertions). Node 18 lacks the global, causing a ReferenceError inside
 // the bundled __commonJS require chain which deadlocks the process when a
-// proxy is configured (configureGlobalAgents → require_undici).
+// proxy is configured (configureGlobalAgents ? require_undici).
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
 if (typeof globalThis.File === 'undefined') {
   try {
@@ -38,7 +38,7 @@ if (typeof globalThis.File === 'undefined') {
 
 // OpenClaude: disable experimental API betas by default.
 // Tool search (defer_loading), global cache scope, and context management
-// require internal API support not available to external accounts → 500.
+// require internal API support not available to external accounts ? 500.
 // Users can opt-in with CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS=false.
 // eslint-disable-next-line custom-rules/no-top-level-side-effects
 process.env.CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS ??= 'true'
@@ -58,7 +58,7 @@ if (process.env.CLAUDE_CODE_REMOTE === 'true') {
 
 // Harness-science L0 ablation baseline. Inlined here (not init.ts) because
 // BashTool/AgentTool/PowerShellTool capture DISABLE_BACKGROUND_TASKS into
-// module-level consts at import time — init() runs too late. feature() gate
+// module-level consts at import time � init() runs too late. feature() gate
 // DCEs this entire block from external builds.
 // eslint-disable-next-line custom-rules/no-top-level-side-effects, custom-rules/no-process-env-top-level
 if (feature('ABLATION_BASELINE') && process.env.CLAUDE_CODE_ABLATION_BASELINE) {
@@ -87,7 +87,7 @@ async function main(): Promise<void> {
   // --provider: set provider env vars early so saved-profile resolution,
   // validation, and the startup banner all see the intended provider/model.
   if (args.includes('--provider')) {
-    const { applyProviderFlagFromArgs } = await import('../utils/providerFlag.js');
+    const { applyProviderFlagFromArgs } = await import('../providers/providerFlag.js');
     const result = applyProviderFlagFromArgs(args);
     if (result?.error) {
       // biome-ignore lint/suspicious/noConsole:: intentional error output
@@ -134,7 +134,7 @@ async function main(): Promise<void> {
 
   await validateProviderEnvOrExit()
 
-  // Breach header now renders inside Ink (BreachHeader) — survives resize.
+  // Breach header now renders inside Ink (BreachHeader) � survives resize.
 
   // For all other paths, load the startup profiler
   const {
@@ -187,9 +187,9 @@ async function main(): Promise<void> {
     return;
   }
 
-  // Fast-path for `--daemon-worker=<kind>` (internal — supervisor spawns this).
+  // Fast-path for `--daemon-worker=<kind>` (internal � supervisor spawns this).
   // Must come before the daemon subcommand check: spawned per-worker, so
-  // perf-sensitive. No enableConfigs(), no analytics sinks at this layer —
+  // perf-sensitive. No enableConfigs(), no analytics sinks at this layer �
   // workers are lean. If a worker kind needs configs/auth (assistant will),
   // it calls them inside its run() fn.
   if (feature('DAEMON') && args[0] === '--daemon-worker') {
@@ -224,7 +224,7 @@ async function main(): Promise<void> {
       exitWithError
     } = await import('../utils/process.js');
 
-    // Auth check must come before the GrowthBook gate check — without auth,
+    // Auth check must come before the GrowthBook gate check � without auth,
     // GrowthBook has no user context and would return a stale/default false.
     // getBridgeDisabledReason awaits GB init, so the returned value is fresh
     // (not the stale disk cache), but init still needs auth headers to work.
@@ -310,7 +310,7 @@ async function main(): Promise<void> {
       templatesMain
     } = await import('../cli/handlers/templateJobs.js');
     await templatesMain(args);
-    // process.exit (not return) — mountFleetView's Ink TUI can leave event
+    // process.exit (not return) � mountFleetView's Ink TUI can leave event
     // loop handles that prevent natural exit.
     // eslint-disable-next-line custom-rules/no-process-exit
     process.exit(0);

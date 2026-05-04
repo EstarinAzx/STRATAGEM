@@ -16,11 +16,11 @@ import { checkOpus1mAccess, checkSonnet1mAccess } from '../../utils/model/check1
 import type { ModelOption } from '../../utils/model/modelOptions.js';
 import { discoverOpenAICompatibleModelOptions } from '../../utils/model/openaiModelDiscovery.js';
 import { getAPIProvider } from '../../utils/model/providers.js';
-import { getActiveOpenAIModelOptionsCache, setActiveOpenAIModelOptionsCache } from '../../utils/providerProfiles.js';
+import { getActiveOpenAIModelOptionsCache, setActiveOpenAIModelOptionsCache } from '../../providers/providerProfiles.js';
 import { getDefaultMainLoopModelSetting, isOpus1mMergeEnabled, renderDefaultModelSetting } from '../../utils/model/model.js';
 import { isModelAllowed } from '../../utils/model/modelAllowlist.js';
 import { validateModel } from '../../utils/model/validateModel.js';
-import { getAdditionalModelOptionsCacheScope } from '../../services/api/providerConfig.js';
+import { getAdditionalModelOptionsCacheScope } from '../../providers/providerConfig.js';
 function ModelPickerWrapper(t0) {
   const $ = _c(17);
   const {

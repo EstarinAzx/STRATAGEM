@@ -54,9 +54,9 @@ import {
   resolveRuntimeCodexCredentials,
   resolveProviderRequest,
   getGithubEndpointType,
-} from './providerConfig.js'
+} from '../../providers/providerConfig.js'
 import { sanitizeSchemaForOpenAICompat } from '../../utils/schemaSanitizer.js'
-import { redactSecretValueForDisplay } from '../../utils/providerProfile.js'
+import { redactSecretValueForDisplay } from '../../providers/providerProfile.js'
 import {
   normalizeToolArguments,
   hasToolFieldMapping,

@@ -12,7 +12,7 @@ import {
   modelUsesOpenAIEffort,
 } from '../utils/effort.js'
 import { getAPIProvider } from '../utils/model/providers.js'
-import { getReasoningEffortForModel } from '../services/api/providerConfig.js'
+import { getReasoningEffortForModel } from '../providers/providerConfig.js'
 import { Select } from './CustomSelect/select.js'
 import { effortLevelToSymbol } from './EffortIndicator.js'
 import { KeyboardShortcutHint } from './design-system/KeyboardShortcutHint.js'

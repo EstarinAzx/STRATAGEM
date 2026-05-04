@@ -60,7 +60,7 @@ async function collectStreamEventTypes(responseText: string): Promise<string[]> 
 }
 
 async function importFreshProviderConfigModule() {
-  return import(`./providerConfig.js?ts=${Date.now()}-${Math.random()}`)
+  return import(`../../providers/providerConfig.js?ts=${Date.now()}-${Math.random()}`)
 }
 
 describe('Codex provider config', () => {

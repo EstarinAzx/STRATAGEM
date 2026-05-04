@@ -14,7 +14,7 @@ async function importFreshEffortModule(options: {
   mock.module('./model/modelSupportOverrides.js', () => ({
     get3PModelCapabilityOverride: () => undefined,
   }))
-  mock.module('../services/api/providerConfig.js', () => ({
+  mock.module('../providers/providerConfig.js', () => ({
     supportsCodexReasoningEffort: () => options.supportsCodexReasoningEffort,
   }))
 
