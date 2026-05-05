@@ -7,7 +7,8 @@
  * so useSyncExternalStore doesn't infinite-loop on object identity.
  *
  * Click-to-jump: clicking anywhere on the track scrolls to that proportional
- * position in the document.
+ * position in the document. The noSelect style prevents text selection from
+ * interfering with click events.
  */
 import React, { type RefObject, useCallback, useMemo } from 'react'
 import { useSyncExternalStore } from 'react'
@@ -107,6 +108,7 @@ export function ScrollIndicator({
       width={1}
       flexDirection="column"
       onClick={handleClick}
+      noSelect={true}
     >
       {track.map((char, i) => (
         <Text
