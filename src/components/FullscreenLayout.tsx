@@ -6,6 +6,7 @@ import { ModalContext } from '../context/modalContext.js';
 import { PromptOverlayProvider, usePromptOverlay, usePromptOverlayDialog } from '../context/promptOverlayContext.js';
 import { useTerminalSize } from '../hooks/useTerminalSize.js';
 import ScrollBox, { type ScrollBoxHandle } from '../ink/components/ScrollBox.js';
+import { ScrollIndicator } from './ScrollIndicator.js';
 import instances from '../ink/instances.js';
 import { Box, Text } from '../ink.js';
 import type { Message } from '../types/message.js';
@@ -268,7 +269,7 @@ export function computeUnseenDivider(messages: readonly Message[], dividerIndex:
  * so nothing can accidentally render outside it.
  */
 export function FullscreenLayout(t0) {
-  const $ = _c(47);
+  const $ = _c(48);
   const {
     scrollable,
     bottom,
@@ -387,73 +388,76 @@ export function FullscreenLayout(t0) {
     } else {
       t13 = $[23];
     }
+    const scrollIndicator = scrollRef ? <ScrollIndicator scrollRef={scrollRef} /> : null;
     let t14;
-    if ($[24] !== t11 || $[25] !== t12 || $[26] !== t13 || $[27] !== t8) {
-      t14 = <Box flexGrow={1} flexDirection="column" overflow="hidden">{t8}{t11}{t12}{t13}</Box>;
+    if ($[24] !== t11 || $[25] !== t12 || $[26] !== t13 || $[27] !== t8 || $[28] !== scrollIndicator) {
+      t14 = <Box flexGrow={1} flexDirection="column" overflow="hidden">{t8}{t11}{t12}{t13}{scrollIndicator}</Box>;
       $[24] = t11;
       $[25] = t12;
       $[26] = t13;
       $[27] = t8;
-      $[28] = t14;
+      $[28] = scrollIndicator;
+      // Shifted: use a slot beyond the original range
+      $[29] = t14;
     } else {
-      t14 = $[28];
+      t14 = $[29];
     }
     let t15;
     let t16;
-    if ($[29] === Symbol.for("react.memo_cache_sentinel")) {
+    if ($[30] === Symbol.for("react.memo_cache_sentinel")) {
       t15 = <SuggestionsOverlay />;
       t16 = <DialogOverlay />;
-      $[29] = t15;
-      $[30] = t16;
+      $[30] = t15;
+      $[31] = t16;
     } else {
-      t15 = $[29];
-      t16 = $[30];
+      t15 = $[30];
+      t16 = $[31];
     }
     let t17;
-    if ($[31] !== bottom) {
+    if ($[32] !== bottom) {
       t17 = <Box flexDirection="column" flexShrink={0} width="100%" maxHeight="50%">{t15}{t16}<Box flexDirection="column" width="100%" flexGrow={1} overflowY="hidden">{bottom}</Box></Box>;
-      $[31] = bottom;
-      $[32] = t17;
+      $[32] = bottom;
+      $[33] = t17;
     } else {
-      t17 = $[32];
+      t17 = $[33];
     }
     let t18;
-    if ($[33] !== columns || $[34] !== modal || $[35] !== modalScrollRef || $[36] !== terminalRows) {
+    if ($[34] !== columns || $[35] !== modal || $[36] !== modalScrollRef || $[37] !== terminalRows) {
       t18 = modal != null && <ModalContext value={{
         rows: terminalRows - MODAL_TRANSCRIPT_PEEK - 1,
         columns: columns - 4,
         scrollRef: modalScrollRef ?? null
       }}><Box position="absolute" bottom={0} left={0} right={0} maxHeight={terminalRows - MODAL_TRANSCRIPT_PEEK} flexDirection="column" overflow="hidden" opaque={true}><Box flexShrink={0}><Text color="permission">{"\u2594".repeat(columns)}</Text></Box><Box flexDirection="column" paddingX={2} flexShrink={0} overflow="hidden">{modal}</Box></Box></ModalContext>;
-      $[33] = columns;
-      $[34] = modal;
-      $[35] = modalScrollRef;
-      $[36] = terminalRows;
-      $[37] = t18;
+      $[34] = columns;
+      $[35] = modal;
+      $[36] = modalScrollRef;
+      $[37] = terminalRows;
+      $[38] = t18;
     } else {
-      t18 = $[37];
+      t18 = $[38];
     }
     let t19;
-    if ($[38] !== t14 || $[39] !== t17 || $[40] !== t18) {
+    if ($[39] !== t14 || $[40] !== t17 || $[41] !== t18) {
       t19 = <PromptOverlayProvider>{t14}{t17}{t18}</PromptOverlayProvider>;
-      $[38] = t14;
-      $[39] = t17;
-      $[40] = t18;
-      $[41] = t19;
+      $[39] = t14;
+      $[40] = t17;
+      $[41] = t18;
+      $[42] = t19;
     } else {
-      t19 = $[41];
+      t19 = $[42];
     }
     return t19;
   }
   let t8;
-  if ($[42] !== bottom || $[43] !== modal || $[44] !== overlay || $[45] !== scrollable) {
+  if ($[43] !== bottom || $[44] !== modal || $[45] !== overlay || $[46] !== scrollable) {
     t8 = <>{scrollable}{bottom}{overlay}{modal}</>;
-    $[42] = bottom;
-    $[43] = modal;
-    $[44] = overlay;
-    $[45] = scrollable;
-    $[46] = t8;
+    $[43] = bottom;
+    $[44] = modal;
+    $[45] = overlay;
+    $[46] = scrollable;
+    $[47] = t8;
   } else {
-    t8 = $[46];
+    t8 = $[47];
   }
   return t8;
 }
