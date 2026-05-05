@@ -5,11 +5,15 @@
  * proportionally-sized thumb showing the current scroll position. Subscribes
  * to ScrollBox's imperative handle — snapshot returns a stable string key
  * so useSyncExternalStore doesn't infinite-loop on object identity.
+ *
+ * Click-to-jump: clicking anywhere on the track scrolls to that proportional
+ * position in the document.
  */
-import React, { type RefObject, useMemo, useRef } from 'react'
+import React, { type RefObject, useCallback, useMemo } from 'react'
 import { useSyncExternalStore } from 'react'
 import { Box, Text } from '../ink.js'
 import type { ScrollBoxHandle } from '../ink/components/ScrollBox.js'
+import type { ClickEvent } from '../ink/events/click-event.js'
 import { useTerminalSize } from '../hooks/useTerminalSize.js'
 
 const NOOP_UNSUB = () => {}
@@ -28,8 +32,6 @@ export function ScrollIndicator({
   )
 
   // Return a primitive string so useSyncExternalStore can compare with ===.
-  // Returning an object would create a new reference every snapshot call →
-  // infinite re-render loop.
   const getSnapshot = useMemo(
     () => (): string => {
       const s = scrollRef?.current
@@ -47,6 +49,26 @@ export function ScrollIndicator({
   const scrollTop = Number(parts[0])
   const scrollHeight = Number(parts[1])
   const viewportHeight = Number(parts[2])
+
+  // Click handler: clicking on the track jumps to that proportional position.
+  const handleClick = useCallback(
+    (event: ClickEvent) => {
+      const s = scrollRef?.current
+      if (!s) return
+      const sh = s.getScrollHeight()
+      const vh = s.getViewportHeight()
+      if (sh <= vh) return
+
+      // localRow is the row within the scrollbar Box that was clicked
+      const trackHeight = Math.max(3, vh - 1)
+      const clickFraction = trackHeight > 1 ? event.localRow / (trackHeight - 1) : 0
+      const maxScroll = sh - vh
+      const targetScroll = Math.round(clickFraction * maxScroll)
+      s.scrollTo(targetScroll)
+      event.stopImmediatePropagation()
+    },
+    [scrollRef],
+  )
 
   // Don't render if content fits in viewport
   if (scrollHeight <= viewportHeight || viewportHeight < 3) {
@@ -84,6 +106,7 @@ export function ScrollIndicator({
       bottom={0}
       width={1}
       flexDirection="column"
+      onClick={handleClick}
     >
       {track.map((char, i) => (
         <Text
