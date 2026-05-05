@@ -6,6 +6,9 @@
  * - Startup telemetry logging
  * - Settings loading from CLI flags
  * - Entrypoint detection
+ * - Deferred prefetches (post-first-render background work)
+ * - Feature activation (proactive, brief)
+ * - Terminal cleanup
  */
 
 import { feature } from 'bun:bundle'
@@ -41,7 +44,7 @@ import { loadAllPluginsCacheOnly } from '../utils/plugins/pluginLoader.js'
 import { getManagedPluginNames } from '../utils/plugins/managedPlugins.js'
 import { getPluginSeedDirs } from '../utils/plugins/pluginDirectories.js'
 import { getCwd } from 'src/utils/cwd.js'
-import { getInitialMainLoopModel, getSdkBetas } from './state.js'
+import { getInitialMainLoopModel, getSdkBetas, setUserMsgOptIn } from './state.js'
 
 // Migrations
 import { migrateAutoUpdatesToSettings } from '../migrations/migrateAutoUpdatesToSettings.js'
@@ -300,4 +303,98 @@ export function initializeEntrypoint(isNonInteractive: boolean): void {
 
   // Set based on interactive status
   process.env.CLAUDE_CODE_ENTRYPOINT = isNonInteractive ? 'sdk-cli' : 'cli'
+}
+
+// ---------------------------------------------------------------------------
+// Terminal cleanup
+// ---------------------------------------------------------------------------
+
+const SHOW_CURSOR = '\x1b[?25h'
+
+export function resetCursor(): void {
+  const terminal = process.stderr.isTTY
+    ? process.stderr
+    : process.stdout.isTTY
+      ? process.stdout
+      : undefined
+  terminal?.write(SHOW_CURSOR)
+}
+
+// ---------------------------------------------------------------------------
+// Feature activation helpers
+// ---------------------------------------------------------------------------
+
+export function maybeActivateProactive(options: unknown): void {
+  if (
+    (feature('PROACTIVE') || feature('KAIROS')) &&
+    ((options as { proactive?: boolean }).proactive ||
+      isEnvTruthy(process.env.CLAUDE_CODE_PROACTIVE))
+  ) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const proactiveModule = require('../proactive/index.js')
+    if (!proactiveModule.isProactiveActive()) {
+      proactiveModule.activateProactive('command')
+    }
+  }
+}
+
+export function maybeActivateBrief(options: unknown): void {
+  if (!(feature('KAIROS') || feature('KAIROS_BRIEF'))) return
+  const briefFlag = (options as { brief?: boolean }).brief
+  const briefEnv = isEnvTruthy(process.env.CLAUDE_CODE_BRIEF)
+  if (!briefFlag && !briefEnv) return
+  /* eslint-disable @typescript-eslint/no-require-imports */
+  const { isBriefEntitled } = require(
+    '../tools/BriefTool/BriefTool.js',
+  ) as typeof import('../tools/BriefTool/BriefTool.js')
+  /* eslint-enable @typescript-eslint/no-require-imports */
+  const entitled = isBriefEntitled()
+  if (entitled) {
+    setUserMsgOptIn(true)
+  }
+  logEvent('tengu_brief_mode_enabled', {
+    enabled: entitled,
+    gated: !entitled,
+    source: (briefEnv
+      ? 'env'
+      : 'flag') as unknown as AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS,
+  })
+}
+
+// ---------------------------------------------------------------------------
+// Teammate options parsing
+// ---------------------------------------------------------------------------
+
+export type TeammateOptions = {
+  agentId?: string
+  agentName?: string
+  teamName?: string
+  agentColor?: string
+  planModeRequired?: boolean
+  parentSessionId?: string
+  teammateMode?: 'auto' | 'tmux' | 'in-process'
+  agentType?: string
+}
+
+export function extractTeammateOptions(options: unknown): TeammateOptions {
+  if (typeof options !== 'object' || options === null) {
+    return {}
+  }
+  const opts = options as Record<string, unknown>
+  const teammateMode = opts.teammateMode
+  return {
+    agentId: typeof opts.agentId === 'string' ? opts.agentId : undefined,
+    agentName: typeof opts.agentName === 'string' ? opts.agentName : undefined,
+    teamName: typeof opts.teamName === 'string' ? opts.teamName : undefined,
+    agentColor: typeof opts.agentColor === 'string' ? opts.agentColor : undefined,
+    planModeRequired:
+      typeof opts.planModeRequired === 'boolean' ? opts.planModeRequired : undefined,
+    parentSessionId:
+      typeof opts.parentSessionId === 'string' ? opts.parentSessionId : undefined,
+    teammateMode:
+      teammateMode === 'auto' || teammateMode === 'tmux' || teammateMode === 'in-process'
+        ? teammateMode
+        : undefined,
+    agentType: typeof opts.agentType === 'string' ? opts.agentType : undefined,
+  }
 }
