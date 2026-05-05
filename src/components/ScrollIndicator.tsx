@@ -3,20 +3,14 @@
  *
  * Renders a 1-column-wide track on the right edge of the viewport with a
  * proportionally-sized thumb showing the current scroll position. Subscribes
- * to ScrollBox's imperative handle — no React state, no re-renders on every
- * frame; useSyncExternalStore drives a single snapshot per paint.
+ * to ScrollBox's imperative handle — snapshot returns a stable string key
+ * so useSyncExternalStore doesn't infinite-loop on object identity.
  */
-import React, { type RefObject, useMemo } from 'react'
+import React, { type RefObject, useMemo, useRef } from 'react'
 import { useSyncExternalStore } from 'react'
 import { Box, Text } from '../ink.js'
 import type { ScrollBoxHandle } from '../ink/components/ScrollBox.js'
 import { useTerminalSize } from '../hooks/useTerminalSize.js'
-
-type ScrollState = {
-  scrollTop: number
-  scrollHeight: number
-  viewportHeight: number
-}
 
 const NOOP_UNSUB = () => {}
 
@@ -33,21 +27,26 @@ export function ScrollIndicator({
     [scrollRef],
   )
 
+  // Return a primitive string so useSyncExternalStore can compare with ===.
+  // Returning an object would create a new reference every snapshot call →
+  // infinite re-render loop.
   const getSnapshot = useMemo(
-    () => (): ScrollState => {
+    () => (): string => {
       const s = scrollRef?.current
-      if (!s) return { scrollTop: 0, scrollHeight: 0, viewportHeight: 0 }
-      return {
-        scrollTop: s.getScrollTop() + s.getPendingDelta(),
-        scrollHeight: s.getScrollHeight(),
-        viewportHeight: s.getViewportHeight(),
-      }
+      if (!s) return '0:0:0'
+      const top = s.getScrollTop() + s.getPendingDelta()
+      const height = s.getScrollHeight()
+      const vp = s.getViewportHeight()
+      return `${top}:${height}:${vp}`
     },
     [scrollRef],
   )
 
-  const state = useSyncExternalStore(subscribe, getSnapshot)
-  const { scrollTop, scrollHeight, viewportHeight } = state
+  const snapshotKey = useSyncExternalStore(subscribe, getSnapshot)
+  const parts = snapshotKey.split(':')
+  const scrollTop = Number(parts[0])
+  const scrollHeight = Number(parts[1])
+  const viewportHeight = Number(parts[2])
 
   // Don't render if content fits in viewport
   if (scrollHeight <= viewportHeight || viewportHeight < 3) {
@@ -85,7 +84,6 @@ export function ScrollIndicator({
       bottom={0}
       width={1}
       flexDirection="column"
-      // Don't capture mouse events — let clicks pass through to content
     >
       {track.map((char, i) => (
         <Text
