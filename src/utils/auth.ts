@@ -11,6 +11,7 @@ import {
 } from 'src/services/analytics/index.js'
 import { getModelStrings } from 'src/utils/model/modelStrings.js'
 import { getAPIProvider } from 'src/utils/model/providers.js'
+import { getActiveProviderProfile } from '../providers/providerProfiles.js'
 import {
   getIsNonInteractiveSession,
   preferThirdPartyAuthentication,
@@ -120,6 +121,17 @@ export function isAnthropicAuthEnabled(): boolean {
     isEnvTruthy(process.env.CLAUDE_CODE_USE_GEMINI) ||
     isEnvTruthy(process.env.CLAUDE_CODE_USE_MISTRAL) ||
     isEnvTruthy(process.env.CLAUDE_CODE_USE_GITHUB)
+
+  // If a non-Anthropic provider profile is active (saved in config), disable
+  // Anthropic auth even if the env flags haven't been applied yet. This
+  // prevents the "Not logged in" banner from flashing on startup when the
+  // user has a third-party provider configured via the profile system.
+  if (!is3P) {
+    const activeProfile = getActiveProviderProfile()
+    if (activeProfile && activeProfile.provider !== 'anthropic') {
+      return false
+    }
+  }
 
   // Check if user has configured an external API key source
   // This allows externally-provided API keys to work (without requiring proxy configuration)

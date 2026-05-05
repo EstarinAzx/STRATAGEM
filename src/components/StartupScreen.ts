@@ -7,6 +7,7 @@
 
 import { isLocalProviderUrl, resolveProviderRequest } from '../providers/providerConfig.js'
 import { getLocalOpenAICompatibleProviderLabel } from '../providers/providerDiscovery.js'
+import { getActiveProviderProfile } from '../providers/providerProfiles.js'
 import { getSettings_DEPRECATED } from '../utils/settings/settings.js'
 import { parseUserSpecifiedModel } from '../utils/model/model.js'
 
@@ -154,11 +155,40 @@ function detectProvider(): { name: string; model: string; baseUrl: string; isLoc
     return { name, model: displayModel, baseUrl, isLocal }
   }
 
+  // Check if a provider profile is active (even if env vars haven't been
+  // applied yet). This covers the race where the startup screen prints
+  // before applyActiveProviderProfileFromConfig() runs.
+  const activeProfile = getActiveProviderProfile()
+  if (activeProfile && activeProfile.provider !== 'anthropic') {
+    const baseUrl = activeProfile.baseUrl || 'https://api.openai.com/v1'
+    const isLocal = isLocalProviderUrl(baseUrl)
+    let name = activeProfile.name || 'OpenAI'
+    const rawModel = activeProfile.model?.split(',')[0]?.trim() || 'unknown'
+    const resolvedRequest = resolveProviderRequest({
+      model: rawModel,
+      baseUrl,
+    })
+    // Detect provider label from base URL when the profile has a generic name
+    if (/nvidia/i.test(baseUrl) || /nvidia/i.test(rawModel))
+      name = 'NVIDIA NIM'
+    else if (resolvedRequest.transport === 'codex_responses' || baseUrl.includes('chatgpt.com/backend-api/codex'))
+      name = 'Codex'
+    else if (/deepseek/i.test(baseUrl) || /deepseek/i.test(rawModel))
+      name = 'DeepSeek'
+    else if (isLocal)
+      name = getLocalOpenAICompatibleProviderLabel(baseUrl)
+    let displayModel = resolvedRequest.resolvedModel
+    if (resolvedRequest.reasoning?.effort) {
+      displayModel = `${displayModel} (${resolvedRequest.reasoning.effort})`
+    }
+    return { name, model: displayModel, baseUrl, isLocal }
+  }
+
   // Default: Anthropic - check settings.model first, then env vars
   const settings = getSettings_DEPRECATED() || {}
   const modelSetting = settings.model || process.env.ANTHROPIC_MODEL || process.env.CLAUDE_MODEL || 'claude-sonnet-4-6'
   const resolvedModel = parseUserSpecifiedModel(modelSetting)
-  return { name: 'Anthropic', model: resolvedModel, baseUrl: 'https://api.anthropic.com', isLocal: false }
+  return { name: 'Anthropic', model: resolvedModel, baseUrl: process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com', isLocal: false }
 }
 
 // â”€â”€â”€ Box drawing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
