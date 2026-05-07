@@ -15,6 +15,7 @@ export const EFFORT_LEVELS = [
   'low',
   'medium',
   'high',
+  'xhigh',
   'max',
 ] as const satisfies readonly EffortLevel[]
 
@@ -77,7 +78,7 @@ export function modelSupportsMaxEffort(model: string): boolean {
 }
 
 export function isEffortLevel(value: string): value is EffortLevel {
-  return (EFFORT_LEVELS as readonly string[]).includes(value)
+  return (EFFORT_LEVELS as readonly string[]).includes(value) || value === 'xhigh'
 }
 
 export function isOpenAIEffortLevel(value: string): value is OpenAIEffortLevel {
@@ -98,7 +99,7 @@ export function getAvailableEffortLevels(model: string): EffortLevel[] | OpenAIE
   }
   const levels: EffortLevel[] = ['low', 'medium', 'high']
   if (modelSupportsMaxEffort(model)) {
-    levels.push('max')
+    levels.push('xhigh', 'max')
   }
   return levels
 }
@@ -110,12 +111,14 @@ export function getEffortLevelLabel(level: EffortLevel | OpenAIEffortLevel): str
 }
 
 export function openAIEffortToStandard(level: OpenAIEffortLevel): EffortLevel {
-  if (level === 'xhigh') return 'max'
+  if (level === 'xhigh') return 'xhigh'
+  if (level === 'max') return 'xhigh'
   return level
 }
 
 export function standardEffortToOpenAI(level: EffortLevel): OpenAIEffortLevel {
   if (level === 'max') return 'xhigh'
+  if (level === 'xhigh') return 'xhigh'
   return level as OpenAIEffortLevel
 }
 
@@ -153,7 +156,7 @@ export function toPersistableEffort(
   if (value === 'low' || value === 'medium' || value === 'high') {
     return value
   }
-  if (value === 'max') {
+  if (value === 'max' || value === 'xhigh') {
     return value
   }
   return undefined

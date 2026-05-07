@@ -9,7 +9,7 @@ import { isLocalProviderUrl, resolveProviderRequest } from '../providers/provide
 import { getLocalOpenAICompatibleProviderLabel } from '../providers/providerDiscovery.js'
 import { getActiveProviderProfile } from '../providers/providerProfiles.js'
 import { getSettings_DEPRECATED } from '../utils/settings/settings.js'
-import { parseUserSpecifiedModel } from '../utils/model/model.js'
+import { parseUserSpecifiedModel, getDefaultMainLoopModel } from '../utils/model/model.js'
 
 declare const MACRO: { VERSION: string; DISPLAY_VERSION?: string }
 
@@ -184,10 +184,11 @@ function detectProvider(): { name: string; model: string; baseUrl: string; isLoc
     return { name, model: displayModel, baseUrl, isLocal }
   }
 
-  // Default: Anthropic - check settings.model first, then env vars
+  // Default: Anthropic - use the runtime-resolved default which accounts for
+  // subscription tier (Max→Opus, Pro→Sonnet) rather than the static env fallback
   const settings = getSettings_DEPRECATED() || {}
-  const modelSetting = settings.model || process.env.ANTHROPIC_MODEL || process.env.CLAUDE_MODEL || 'claude-sonnet-4-6'
-  const resolvedModel = parseUserSpecifiedModel(modelSetting)
+  const modelSetting = settings.model || process.env.ANTHROPIC_MODEL || process.env.CLAUDE_MODEL
+  const resolvedModel = modelSetting ? parseUserSpecifiedModel(modelSetting) : getDefaultMainLoopModel()
   return { name: 'Anthropic', model: resolvedModel, baseUrl: process.env.ANTHROPIC_BASE_URL || 'https://api.anthropic.com', isLocal: false }
 }
 

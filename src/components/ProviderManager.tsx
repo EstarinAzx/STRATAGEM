@@ -120,6 +120,7 @@ const FORM_STEPS: Array<{
     label: 'Default model',
     placeholder: 'e.g. llama3.1:8b or glm-4.7, glm-4.7-flash',
     helpText: 'Model name(s) to use. Separate multiple with commas; first is default.',
+    optional: true,
   },
 ]
 
@@ -174,6 +175,7 @@ function getKnownModelsForBaseUrl(baseUrl: string): string[] | null {
   // Anthropic native API
   if (lower.includes('api.anthropic.com') || lower.includes('anthropic')) {
     return [
+      '__subscription__',
       'opus',
       'sonnet',
       'haiku',
@@ -1365,10 +1367,19 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
           <Box flexDirection="column">
             <Select
               options={[
-                ...discoveredModels.map(m => ({
-                  value: m,
-                  label: m,
-                })),
+                ...discoveredModels
+                  .filter(m => m !== '__subscription__')
+                  .map(m => ({
+                    value: m,
+                    label: m,
+                  })),
+                ...(discoveredModels.includes('__subscription__')
+                  ? [{
+                      value: '__subscription__',
+                      label: '⚡ Subscription default',
+                      description: 'Uses your subscription tier model (OAuth)',
+                    }]
+                  : []),
                 {
                   value: '__manual__',
                   label: '✎ Enter manually…',
@@ -1381,10 +1392,15 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
                   setDiscoveredModels(null)
                   return
                 }
+                if (value === '__subscription__') {
+                  // Store empty model — subscription tier determines model at runtime
+                  handleFormSubmit('')
+                  return
+                }
                 handleFormSubmit(value)
               }}
               onCancel={handleBackFromForm}
-              visibleOptionCount={Math.min(12, discoveredModels.length + 1)}
+              visibleOptionCount={Math.min(12, discoveredModels.length + 2)}
             />
           </Box>
         ) : (
