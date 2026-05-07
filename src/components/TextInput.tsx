@@ -115,7 +115,10 @@ export default function TextInput(props: Props): React.ReactNode {
     onOffsetChange: props.onChangeCursorOffset,
     inputFilter: props.inputFilter,
     inlineGhostText: props.inlineGhostText,
-    dim: chalk.dim
+    // chalk.gray instead of chalk.dim — dim (SGR-2) renders unpredictably on
+    // dark terminals, leaving stochastic chars visible. gray (RGB-128) is
+    // deterministic and the same visual weight in practice.
+    dim: chalk.gray
   });
   return <Box ref={animRef}>
       <BaseTextInput inputState={textInputState} terminalFocus={isTerminalFocused} highlights={props.highlights} invert={invert} hidePlaceholderText={isVoiceRecording} {...props} />
