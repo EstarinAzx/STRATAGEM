@@ -23,6 +23,7 @@ const OPENAI_CONTEXT_WINDOWS: Record<string, number> = {
   'github:copilot:claude-sonnet-4.6':         200_000,
   'github:copilot:claude-opus-4':             200_000,
   'github:copilot:claude-opus-4.6':           200_000,
+  'github:copilot:claude-opus-4.7':           1_000_000,
   // GPT
   'github:copilot:gpt-3.5-turbo':             16_384,
   'github:copilot:gpt-4':                     32_768,
@@ -220,6 +221,7 @@ const OPENAI_MAX_OUTPUT_TOKENS: Record<string, number> = {
   'github:copilot:claude-sonnet-4.6':          32_000,
   'github:copilot:claude-opus-4':              32_000,
   'github:copilot:claude-opus-4.6':            32_000,
+  'github:copilot:claude-opus-4.7':            32_000,
   // GPT
   'github:copilot:gpt-3.5-turbo':              4_096,
   'github:copilot:gpt-4':                      4_096,

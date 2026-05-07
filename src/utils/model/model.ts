@@ -164,7 +164,7 @@ export function getDefaultOpusModel(): ModelName {
   if (getAPIProvider() !== 'firstParty') {
     return getModelStrings().opus46
   }
-  return getModelStrings().opus46
+  return getModelStrings().opus47
 }
 
 // @[MODEL LAUNCH]: Update the default Sonnet model (3P providers may lag so keep defaults unchanged).
