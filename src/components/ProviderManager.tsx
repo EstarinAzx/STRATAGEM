@@ -11,6 +11,21 @@ import {
 } from '../utils/codexCredentials.js'
 import { isBareMode, isEnvTruthy } from '../utils/envUtils.js'
 import { getPrimaryModel, hasMultipleModels, parseModelList } from '../providers/providerModels.js'
+import { getDefaultMainLoopModel } from '../utils/model/model.js'
+
+/**
+ * UI-only sentinel for the "Subscription default" picker option in the
+ * Anthropic provider flow. Threaded through getKnownModelsForBaseUrl,
+ * the model-picker filter, the styled-option re-add, and the submit branch.
+ *
+ * On submit, this value is collapsed to an empty string in the saved
+ * profile (model = ''), and runtime resolves the actual model via
+ * getDefaultMainLoopModel() based on the user's subscription tier.
+ *
+ * Storage form is the empty string — this constant only exists in the
+ * UI layer to keep the picker code typo-safe.
+ */
+const SUBSCRIPTION_MODEL_SENTINEL = '__subscription__'
 import {
   applySavedProfileToCurrentSession,
   buildCodexOAuthProfileEnv,
@@ -175,7 +190,7 @@ function getKnownModelsForBaseUrl(baseUrl: string): string[] | null {
   // Anthropic native API
   if (lower.includes('api.anthropic.com') || lower.includes('anthropic')) {
     return [
-      '__subscription__',
+      SUBSCRIPTION_MODEL_SENTINEL,
       'opus',
       'sonnet',
       'haiku',
@@ -934,9 +949,13 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
 
     // When the edited profile is the active one, sync the new model to
     // session state so it takes effect immediately without restart.
-    // Skip if model is empty (subscription default — runtime resolves it).
-    if (isActiveSavedProfile && saved.model) {
-      const newModel = getPrimaryModel(saved.model)
+    // For subscription-default profiles (empty model), resolve via the
+    // runtime tier ladder so toggling to/from subscription mode mid-session
+    // doesn't leave appState pointing at the previous profile's model.
+    if (isActiveSavedProfile) {
+      const newModel = saved.model
+        ? getPrimaryModel(saved.model)
+        : getDefaultMainLoopModel()
       setAppState(prev => ({
         ...prev,
         mainLoopModel: newModel,
@@ -1369,14 +1388,14 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
             <Select
               options={[
                 ...discoveredModels
-                  .filter(m => m !== '__subscription__')
+                  .filter(m => m !== SUBSCRIPTION_MODEL_SENTINEL)
                   .map(m => ({
                     value: m,
                     label: m,
                   })),
-                ...(discoveredModels.includes('__subscription__')
+                ...(discoveredModels.includes(SUBSCRIPTION_MODEL_SENTINEL)
                   ? [{
-                      value: '__subscription__',
+                      value: SUBSCRIPTION_MODEL_SENTINEL,
                       label: '⚡ Subscription default',
                       description: 'Uses your subscription tier model (OAuth)',
                     }]
@@ -1393,7 +1412,7 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
                   setDiscoveredModels(null)
                   return
                 }
-                if (value === '__subscription__') {
+                if (value === SUBSCRIPTION_MODEL_SENTINEL) {
                   // Store empty model — subscription tier determines model at runtime
                   handleFormSubmit('')
                   return
