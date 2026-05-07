@@ -171,6 +171,22 @@ function profileSummary(profile: ProviderProfile, isActive: boolean): string {
 function getKnownModelsForBaseUrl(baseUrl: string): string[] | null {
   const lower = baseUrl.toLowerCase()
 
+  // Anthropic native API
+  if (lower.includes('api.anthropic.com') || lower.includes('anthropic')) {
+    return [
+      'opus',
+      'sonnet',
+      'haiku',
+      'claude-opus-4-7',
+      'claude-sonnet-4-6',
+      'claude-haiku-4-5',
+      'claude-opus-4-6',
+      'claude-opus-4-5',
+      'claude-opus-4-1',
+      'claude-sonnet-4-5',
+    ]
+  }
+
   // Codex / ChatGPT backend
   if (lower.includes('codex') || lower.includes('chatgpt.com')) {
     return [
