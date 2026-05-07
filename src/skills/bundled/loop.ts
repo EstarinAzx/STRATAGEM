@@ -4,6 +4,11 @@ import {
   DEFAULT_MAX_AGE_DAYS,
   isKairosCronEnabled,
 } from '../../tools/ScheduleCronTool/prompt.js'
+import {
+  SCHEDULE_WAKEUP_MAX_SECONDS,
+  SCHEDULE_WAKEUP_MIN_SECONDS,
+  SCHEDULE_WAKEUP_TOOL_NAME,
+} from '../../tools/ScheduleWakeupTool/prompt.js'
 import { registerBundledSkill } from '../bundledSkills.js'
 
 type LoopMode =
@@ -18,8 +23,6 @@ type ParsedLoopArgs = {
   prompt?: string
 }
 
-const DYNAMIC_MIN_DELAY = '1 minute'
-const DYNAMIC_MAX_DELAY = '1 hour'
 
 const MAINTENANCE_PROMPT = `Scheduled maintenance loop iteration.
 
@@ -182,22 +185,22 @@ ${effectivePromptInstructions}
 1. Execute the effective prompt now.
    - If it starts with a slash command, invoke it via the Skill tool.
    - Otherwise, act on it directly.
-2. After the work finishes, choose the next delay dynamically between ${DYNAMIC_MIN_DELAY} and ${DYNAMIC_MAX_DELAY}.
-   - Use shorter delays while active work is progressing or likely to change soon.
-   - Use longer delays when the situation is quiet or stable.
+2. After the work finishes, choose the next delay dynamically in [${SCHEDULE_WAKEUP_MIN_SECONDS}, ${SCHEDULE_WAKEUP_MAX_SECONDS}] seconds.
+   - Think in cache windows, not round-number minutes. The prompt cache TTL is 5 minutes — picking exactly 300s is the worst-of-both because you pay the cache miss without amortizing it.
+   - Under 5 minutes (60s–270s): cache stays warm — use for active work or polling state about to change.
+   - Over 5 minutes (300s–3600s): pay the cache miss — use only when there is no point checking sooner.
+   - For idle ticks with no specific signal to watch, default to 1200s–1800s (20–30 min).
 3. Briefly tell the user the chosen delay and the reason.
-4. Schedule exactly one session-only follow-up run with ${CRON_CREATE_TOOL_NAME}.
-   - Use recurring: false.
-   - Use durable: false.
-   - Pin the cron expression to a specific future local-time minute that matches the chosen delay.
-   - Set the scheduled prompt to this exact text so the next iteration stays in dynamic mode:
+4. Schedule exactly one session-only wake-up by calling ${SCHEDULE_WAKEUP_TOOL_NAME}.
+   - delaySeconds = the chosen delay (the runtime clamps to [${SCHEDULE_WAKEUP_MIN_SECONDS}, ${SCHEDULE_WAKEUP_MAX_SECONDS}]).
+   - reason = the one-sentence rationale shown to the user.
+   - prompt = this exact text so the next iteration stays in dynamic mode:
 
 --- BEGIN SCHEDULED PROMPT ---
 ${reschedulePrompt}
 --- END SCHEDULED PROMPT ---
 
-5. Confirm the next run time and the returned job ID.
-6. Do not create a recurring cron for this mode.
+5. Do not call ${CRON_CREATE_TOOL_NAME} for dynamic mode — ${SCHEDULE_WAKEUP_TOOL_NAME} is the purpose-built primitive.
 `
 }
 

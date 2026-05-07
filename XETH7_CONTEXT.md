@@ -1,6 +1,6 @@
 # XETH--7 / STRATAGEM X7 — Project Context
 
-> **Last updated**: 2026-05-04 — v0.3.27
+> **Last updated**: 2026-05-08 — v0.3.46
 
 ---
 
@@ -11,7 +11,7 @@
 | **Path** | `D:\Mods\xethryon\new agent\XETH--7` |
 | **Branch** | `xeth-7-dev` (all work goes here — never `main`) |
 | **NPM package** | `stratagem-x7` on npmjs.com |
-| **Current version** | `0.3.27` |
+| **Current version** | `0.3.46` |
 | **Global install** | `npm i -g stratagem-x7` |
 | **CLI commands** | `stx7`, `openclaude`, `xeth7` |
 | **Build** | `bun run build` → `dist/cli.mjs` |
@@ -42,7 +42,7 @@ XETH--7/
 ├── dist/                   # Build output (cli.mjs — single bundle)
 ├── scripts/                # Build scripts (build.ts)
 ├── src/                    # All source code
-├── package.json            # v0.3.27, name: stratagem-x7
+├── package.json            # v0.3.46, name: stratagem-x7
 ├── XETH7_CONTEXT.md        # This file
 └── STRATAGEM.md            # Project-level instructions for the agent
 ```
@@ -128,8 +128,23 @@ Stratagem supports any OpenAI-compatible API, not just Anthropic:
 - **Provider config**: `src/services/api/providerConfig.ts` — provider profile storage and validation
 - **Provider setup UI**: `src/components/ProviderManager.tsx` (~56KB) — add/edit/delete providers, auto-discover models via `/v1/models`
 - **Provider profiles**: `src/utils/providerProfiles.ts` — pre-configured provider templates
+- **Subscription default**: Anthropic OAuth users can select "⚡ Subscription default" model, which dynamically resolves via `getDefaultMainLoopModel()` based on their subscription tier. `sanitizeProfile()` allows empty model fields for Anthropic providers to enable this.
 
-### 4.4 Autonomy System (Buffer Modes)
+### 4.4 Effort System (5-Level Slider)
+
+Effort levels control model behavior for Claude Opus 4.7:
+
+| Level | Budget tokens | Use case |
+|---|---|---|
+| `xlow` | 1024 | Quick lookups |
+| `low` | 4096 | Simple tasks |
+| `medium` | 16384 | Standard work |
+| `high` | 32768 | Complex reasoning |
+| `xhigh` | 65536 | Maximum depth |
+
+**Key file:** `src/utils/effort.ts` — source of truth for all effort levels and budget mapping.
+
+### 4.5 Autonomy System (Buffer Modes)
 
 Three-tier permission system:
 
@@ -145,7 +160,7 @@ Three-tier permission system:
   - `src/commands/autonomy/` — slash command
   - `src/utils/permissions/permissionSetup.ts` — permission mapping
 
-### 4.5 Agent Teams / Swarm
+### 4.6 Agent Teams / Swarm
 
 Always enabled (no feature flag needed). Sub-agents run as teammates with shared task board.
 
@@ -164,7 +179,7 @@ Always enabled (no feature flag needed). Sub-agents run as teammates with shared
   - `src/utils/swarm/` — full swarm module
   - `src/tools/TeamCreateTool/`, `TeamDeleteTool/`, `SendMessageTool/`
 
-### 4.6 TUI / Shell (Ink/React)
+### 4.7 TUI / Shell (Ink/React)
 
 The terminal UI uses **Ink** (React for terminal). Key surfaces:
 
@@ -189,13 +204,17 @@ The terminal UI uses **Ink** (React for terminal). Key surfaces:
 - Breach / buffer / matrix / uplink language
 - Message prefixes: `USER` (user), `STRATAGEM` (AI), `TRACE//COGNITION` (thinking)
 
-### 4.7 Tool System
+### 4.8 Tool System
 
 46 tool directories under `src/tools/`. Each tool is a directory with a main `.ts`/`.tsx` file implementing the tool interface from `src/Tool.ts`. Tools are registered in `src/tools.ts`.
 
 Core tools: `BashTool`, `PowerShellTool`, `FileReadTool`, `FileEditTool`, `FileWriteTool`, `GrepTool`, `GlobTool`, `WebFetchTool`, `WebSearchTool`, `AgentTool`, `MCPTool`, `AskUserQuestionTool`, `TodoWriteTool`, `SkillTool`.
 
-### 4.8 Build System
+**Scheduling primitives** (gated by `isKairosCronEnabled()`):
+- `CronCreate` / `CronList` / `CronDelete` — recurring + one-shot cron jobs (`src/tools/ScheduleCronTool/`)
+- `ScheduleWakeup` — purpose-built one-shot self-pacing primitive for `/loop` dynamic mode. Takes `delaySeconds` / `reason` / `prompt`, clamped to [60, 3600]s. Description bakes in 5-minute prompt-cache TTL guidance (avoid 300s cliff; idle ticks default to 1200–1800s). Internally maps to a session-only one-shot cron task. (`src/tools/ScheduleWakeupTool/`)
+
+### 4.9 Build System
 
 - **Bundler**: Bun's built-in bundler via `scripts/build.ts`
 - **Feature flags**: `import { feature } from 'bun:bundle'` — dead code elimination at build time
@@ -203,7 +222,7 @@ Core tools: `BashTool`, `PowerShellTool`, `FileReadTool`, `FileEditTool`, `FileW
 - **Feature pre-processing**: 206 files processed for flag evaluation
 - **Output**: Single `dist/cli.mjs` bundle (~20.8MB)
 
-### 4.9 Analytics & Telemetry
+### 4.10 Analytics & Telemetry
 
 - `src/services/analytics/config.ts` — `isAnalyticsDisabled()` always returns `true`
 - GrowthBook feature flags are effectively dead (depend on 1P event logging)
@@ -211,27 +230,98 @@ Core tools: `BashTool`, `PowerShellTool`, `FileReadTool`, `FileEditTool`, `FileW
 
 ---
 
-## 5. Recent Commit History (v0.3.13 → v0.3.27)
+## 5. External Systems: Knowledge Base (KB) Skill Suite
 
-| Version | Commit | Change |
+The user maintains a personal knowledge base system alongside Stratagem. This is a **separate system** — not part of the Stratagem codebase, but integrated via Claude Code skills and hooks.
+
+### Architecture
+
+```
+~/.claude/
+├── kb/                          # KB Engine (centralized install)
+│   ├── AGENTS.md                # Schema spec (article format, conventions)
+│   ├── pyproject.toml           # Dependencies (claude-agent-sdk, python-dotenv)
+│   ├── scripts/                 # compile.py, query.py, lint.py, flush.py, config.py, utils.py
+│   └── hooks/                   # session-start.py, session-end.py, pre-compact.py
+├── skills/
+│   ├── kb/                      # Skill hub (docs + router)
+│   ├── kb-save/                 # /kb-save — mid-session capture
+│   ├── kb-compile/              # /kb-compile — compile daily logs → wiki
+│   ├── kb-query/                # /kb-query — ask the KB
+│   ├── kb-lint/                 # /kb-lint — health checks
+│   └── kb-status/               # /kb-status — stats and diagnostics
+├── template/                    # AGENTS.md + CLAUDE.md for new projects
+│   ├── AGENTS.md
+│   └── CLAUDE.md
+├── init-project.bat             # Run from any project root to copy templates
+└── settings.json                # Hook config pointing to ~/.claude/kb/
+```
+
+### Per-project data
+
+Each project gets a `.memory/` directory (hidden dotfolder) created automatically by the SessionEnd hook:
+
+```
+<project-root>/.memory/
+├── daily/                       # Session logs (YYYY-MM-DD.md)
+├── knowledge/                   # Compiled wiki articles
+│   ├── index.md                 # Master catalog
+│   ├── concepts/                # Atomic knowledge
+│   ├── connections/             # Cross-cutting insights
+│   └── qa/                      # Filed Q&A answers
+├── reports/                     # Lint reports
+└── state/                       # Compile hashes, cost tracking, flush.log
+```
+
+### Slash commands
+
+| Command | What it does | Cost |
 |---|---|---|
-| **0.3.27** | `7b2a92b` | fix: rebrand "Claude's questions" → "Stratagem's questions" in AskUserQuestionTool |
-| **0.3.25-26** | `1e52f06` | feat: complete Stratagem identity migration — per-project memory isolation + STRATAGEM.md branding |
-| **0.3.23** | `5f72e0f` | release: v0.3.23 |
-| **0.3.22** | `354a2f9` | feat: add model auto-detection fallback for all provider edit flows |
-| **0.3.21** | `21bf35f` | feat: expand Codex model picker with all GPT models |
-| **0.3.20** | `3863e9e` | ui: dynamically center BreachHeader in fullscreen viewport |
-| **0.3.19** | `fc70284` | feat: enable fullscreen + virtual scroll by default |
-| **0.3.18** | `112ddc8` | fix: sanitize tool IDs at streaming ingestion |
-| **0.3.17** | `ec6798b` | fix: Alt+H fully hides thinking blocks |
-| **0.3.16** | `2ae052e` | fix: default verbose=true, Alt+H toggles thinking |
-| **0.3.15** | `de82601` | fix: always show thinking blocks expanded |
-| **0.3.14** | `dd7d01d` | fix: always show thinking/reasoning blocks after streaming |
-| **0.3.13** | `ddf4762` | feat: persistent Shell Command Mode (Ctrl+P toggle) |
+| `/kb-save [hint]` | Capture to daily log + wiki articles | Free |
+| `/kb-compile` | Compile new/changed daily logs | ~$0.45-0.65/log |
+| `/kb-compile --all` | Full rebuild (warns first) | ⚠ per log |
+| `/kb-compile --dry-run` | Preview what needs compiling | Free |
+| `/kb-query <q>` | Ask the KB | ~$0.15-0.25 |
+| `/kb-query <q> --save` | Ask + save answer as Q&A article | ~$0.25-0.40 |
+| `/kb-lint` | Structural health checks | Free |
+| `/kb-lint --full` | Includes LLM contradiction check | ~$0.15-0.25 |
+| `/kb-status` | Counts, cost, flush.log tail | Free |
+
+### Context sync (separate skill)
+
+| Command | What it does |
+|---|---|
+| `/context-sync` | Router — suggests init or update |
+| `/context-init` | Bootstrap `.context/` in a project |
+| `/context-update` | Refresh `.context/` at session end |
+
+### Important boundaries
+
+- **`.memory/`** is the KB system's per-project data — NOT the same as Stratagem's auto-memory (`~/.stratagem/projects/<hash>/memory/`)
+- **`.context/`** is the cross-session handoff system — separate from both
+- The KB system uses Claude Code's built-in credentials — no API key needed
 
 ---
 
-## 6. Known Issues & Gotchas
+## 6. Recent Commit History (v0.3.27 → v0.3.46)
+
+| Version | Commit | Change |
+|---|---|---|
+| **0.3.46** | _pending_ | feat: add ScheduleWakeup tool — cache-aware self-pacing primitive for /loop dynamic mode |
+| **0.3.45** | `935e2aa` | fix: allow empty model for Anthropic Subscription default — bypass sanitizeProfile validation |
+| **0.3.44** | `5822914` | feat: fix startup model display for subscription users, add xhigh effort level, add Subscription default to Anthropic model picker |
+| **0.3.43** | `cba1c31` | feat: enable effort support for Opus 4.7 — effort slider, max effort, default effort |
+| **0.3.42** | `e8fdb4e` | feat: add Anthropic model picker to uplink profile step 4/4 |
+| **0.3.41** | `7d9168a` | fix: update all remaining Opus 4.6 display strings to 4.7 |
+| **0.3.39** | `db1165c` | feat: add Opus 4.7 with correct model ID |
+| **0.3.38** | `7bfeb92` | chore: revert to stable scrollbar fix base — removes opus 4.7 experiments |
+| **0.3.30** | `1a576c0` | fix: ScrollIndicator infinite loop — snapshot returns primitive string |
+| **0.3.29** | `4343cab` | feat: add terminal scrollbar indicator for fullscreen mode |
+| **0.3.27** | `7b2a92b` | fix: rebrand "Claude's questions" → "Stratagem's questions" in AskUserQuestionTool |
+
+---
+
+## 7. Known Issues & Gotchas
 
 ### Build
 - Full typecheck may surface pre-existing upstream issues — `bun run build` + targeted tests is the practical baseline
@@ -245,6 +335,7 @@ Core tools: `BashTool`, `PowerShellTool`, `FileReadTool`, `FileEditTool`, `FileW
 ### Providers
 - Providers using `reasoning_content` field (Kimi, Moonshot, DeepSeek) need special handling in the shim
 - Tool ID sanitization happens at two points: streaming ingestion (`sessionIngress.ts`) and replay (`openaiShim.ts`)
+- `sanitizeProfile()` in `providerProfiles.ts` allows empty model fields for Anthropic providers — this enables the "Subscription default" feature. Don't re-add model validation for Anthropic.
 
 ### Memory
 - A stray `.git` at `D:\` caused all D: projects to share memory — fixed in v0.3.25 via `isFilesystemRoot()` guard
@@ -252,7 +343,7 @@ Core tools: `BashTool`, `PowerShellTool`, `FileReadTool`, `FileEditTool`, `FileW
 
 ---
 
-## 7. Good Next Targets
+## 8. Good Next Targets
 
 | Area | Notes |
 |---|---|
@@ -268,7 +359,7 @@ Core tools: `BashTool`, `PowerShellTool`, `FileReadTool`, `FileEditTool`, `FileW
 
 ---
 
-## 8. Development Conventions
+## 9. Development Conventions
 
 ### Workflow
 - Work on `xeth-7-dev` only

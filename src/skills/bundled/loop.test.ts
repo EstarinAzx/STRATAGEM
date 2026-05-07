@@ -33,7 +33,8 @@ test('prompt-only /loop returns dynamic rescheduling instructions', async () => 
 
   expect(text).toContain('# /loop — dynamic rescheduling')
   expect(text).toContain('check the deploy')
-  expect(text).toContain('choose the next delay dynamically between 1 minute and 1 hour')
+  expect(text).toContain('choose the next delay dynamically in [60, 3600] seconds')
+  expect(text).toContain('ScheduleWakeup')
   expect(text).toContain('/loop check the deploy')
 })
 
