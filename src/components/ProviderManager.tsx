@@ -10,7 +10,7 @@ import {
   readCodexCredentialsAsync,
 } from '../utils/codexCredentials.js'
 import { isBareMode, isEnvTruthy } from '../utils/envUtils.js'
-import { getPrimaryModel, hasMultipleModels, parseModelList } from '../providers/providerModels.js'
+import { getPrimaryModel, parseModelList } from '../providers/providerModels.js'
 import { getDefaultMainLoopModel } from '../utils/model/model.js'
 
 /**
@@ -388,7 +388,7 @@ function CodexOAuthSetup({
   }, persistCredentials: (options?: { profileId?: string }) => void) => {
     await onConfigured(tokens, persistCredentials)
   }, [onConfigured])
-  useKeybinding('confirm:no', onBack, [onBack])
+  useKeybinding('confirm:no', onBack)
 
   const status = useCodexOAuthFlow({
     onAuthenticated: handleAuthenticated,

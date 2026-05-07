@@ -11,3 +11,5 @@ package-lock.json
 /.claude
 coverage/
 .memory/
+AGENTS.md
+CLAUDE.MD

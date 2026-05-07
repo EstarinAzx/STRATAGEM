@@ -1,6 +1,6 @@
 {
   "name": "stratagem-x7",
-  "version": "0.3.54",
+  "version": "0.3.55",
   "description": "STRATAGEM X7 is a cyberpunk coding-agent CLI for cloud and local model providers",
   "type": "module",
   "bin": {
@@ -142,7 +142,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/EstarinAzx/XETH--7.git"
+    "url": "https://github.com/EstarinAzx/STRATAGEM.git"
   },
   "keywords": [
     "stratagem-x7",
