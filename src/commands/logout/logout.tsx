@@ -23,9 +23,17 @@ export async function performLogout({
   await flushTelemetry();
   await removeApiKey();
 
-  // Wipe all secure storage data on logout
+  // Scoped clear — only Anthropic-related secure storage keys.
+  // Preserves third-party credentials (codex / OpenCode OAuth, mcpOAuth,
+  // mcpOAuthClientConfig, pluginSecrets) so /logout doesn't unintentionally
+  // disconnect every provider the user has configured. /logout is named after
+  // logging out of Anthropic, not nuking every credential the harness holds.
   const secureStorage = getSecureStorage();
-  secureStorage.delete();
+  const current = secureStorage.read();
+  if (current) {
+    const { claudeAiOauth: _claudeAi, trustedDeviceToken: _trusted, ...preserved } = current as Record<string, unknown>;
+    secureStorage.update(preserved as Parameters<typeof secureStorage.update>[0]);
+  }
   await clearAuthRelatedCaches();
   saveGlobalConfig(current => {
     const updated = {
