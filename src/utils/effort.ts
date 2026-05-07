@@ -15,7 +15,6 @@ export const EFFORT_LEVELS = [
   'low',
   'medium',
   'high',
-  'xhigh',
   'max',
 ] as const satisfies readonly EffortLevel[]
 
@@ -99,7 +98,7 @@ export function getAvailableEffortLevels(model: string): EffortLevel[] | OpenAIE
   }
   const levels: EffortLevel[] = ['low', 'medium', 'high']
   if (modelSupportsMaxEffort(model)) {
-    levels.push('xhigh', 'max')
+    levels.push('max')
   }
   return levels
 }
@@ -111,11 +110,14 @@ export function getEffortLevelLabel(level: EffortLevel | OpenAIEffortLevel): str
 }
 
 export function openAIEffortToStandard(level: OpenAIEffortLevel): EffortLevel {
+  // 'xhigh' is the OpenAI/Codex name for what Anthropic calls 'max' —
+  // same semantic level, different provider conventions.
+  if (level === 'xhigh') return 'max'
   return level
 }
 
 export function standardEffortToOpenAI(level: EffortLevel): OpenAIEffortLevel {
-  if (level === 'max' || level === 'xhigh') return 'xhigh'
+  if (level === 'max') return 'xhigh'
   return level as OpenAIEffortLevel
 }
 
@@ -153,7 +155,7 @@ export function toPersistableEffort(
   if (value === 'low' || value === 'medium' || value === 'high') {
     return value
   }
-  if (value === 'max' || value === 'xhigh') {
+  if (value === 'max') {
     return value
   }
   return undefined

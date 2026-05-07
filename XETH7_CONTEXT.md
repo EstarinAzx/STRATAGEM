@@ -130,19 +130,23 @@ Stratagem supports any OpenAI-compatible API, not just Anthropic:
 - **Provider profiles**: `src/utils/providerProfiles.ts` — pre-configured provider templates
 - **Subscription default**: Anthropic OAuth users can select "⚡ Subscription default" model, which dynamically resolves via `getDefaultMainLoopModel()` based on their subscription tier. `sanitizeProfile()` allows empty model fields for Anthropic providers to enable this.
 
-### 4.4 Effort System (5-Level Slider)
+### 4.4 Effort System
 
-Effort levels control model behavior for Claude Opus 4.7:
+Effort is a string param sent to the model API; the **server** decides the actual reasoning budget — Stratagem does not own a token-budget mapping. Two parallel naming conventions exist for the same semantic ladder:
 
-| Level | Budget tokens | Use case |
+| Anthropic (`EFFORT_LEVELS`) | OpenAI/Codex (`OPENAI_EFFORT_LEVELS`) | Use case |
 |---|---|---|
-| `xlow` | 1024 | Quick lookups |
-| `low` | 4096 | Simple tasks |
-| `medium` | 16384 | Standard work |
-| `high` | 32768 | Complex reasoning |
-| `xhigh` | 65536 | Maximum depth |
+| `low` | `low` | Simple tasks |
+| `medium` | `medium` | Standard work |
+| `high` | `high` | Complex reasoning |
+| `max` | `xhigh` | Deepest reasoning (Opus 4.7 / 4.6 only on Anthropic) |
 
-**Key file:** `src/utils/effort.ts` — source of truth for all effort levels and budget mapping.
+`max` ⇄ `xhigh` are **different names for the same level** — translated via `standardEffortToOpenAI()` / `openAIEffortToStandard()` in `src/utils/effort.ts`. They are not separate levels and the picker shows only one at a time depending on provider.
+
+**Key files:**
+- `src/utils/effort.ts` — source of truth for available levels, model support, and convention translation
+- `src/services/api/claude.ts` `configureEffortParams()` — sends the effort string to Anthropic via `outputConfig.effort`
+- `src/components/EffortPicker.tsx` — picker UI; collapses `xhigh` ⇄ `max` for the comparison logic
 
 ### 4.5 Autonomy System (Buffer Modes)
 
