@@ -934,7 +934,8 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
 
     // When the edited profile is the active one, sync the new model to
     // session state so it takes effect immediately without restart.
-    if (isActiveSavedProfile) {
+    // Skip if model is empty (subscription default — runtime resolves it).
+    if (isActiveSavedProfile && saved.model) {
       const newModel = getPrimaryModel(saved.model)
       setAppState(prev => ({
         ...prev,

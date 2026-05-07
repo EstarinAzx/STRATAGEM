@@ -75,7 +75,8 @@ function sanitizeProfile(profile: ProviderProfile): ProviderProfile | null {
   const baseUrl = normalizeBaseUrl(profile.baseUrl)
   const model = trimValue(profile.model)
 
-  if (!id || !name || !baseUrl || !model) {
+  // Anthropic profiles allow empty model (subscription tier resolves at runtime)
+  if (!id || !name || !baseUrl || (provider !== 'anthropic' && !model)) {
     return null
   }
 
@@ -84,7 +85,7 @@ function sanitizeProfile(profile: ProviderProfile): ProviderProfile | null {
     name,
     provider,
     baseUrl,
-    model,
+    model: model || '',
     apiKey: trimOrUndefined(profile.apiKey),
   }
 }
