@@ -30,6 +30,25 @@ import {
 } from 'src/utils/model/model.js'
 import { getModelStrings } from 'src/utils/model/modelStrings.js'
 import { getAPIProvider } from 'src/utils/model/providers.js'
+import { getActiveProviderProfile } from 'src/providers/providerProfiles.js'
+
+/**
+ * Returns true when the auth flow is Anthropic OAuth / Anthropic API key.
+ * Robust to env-state corruption: reads the active profile from config first,
+ * then falls back to env-based getAPIProvider() detection. If the user has
+ * configured a non-Anthropic provider in /provider, we never suggest /login
+ * (which is Anthropic-specific) even if env vars happen to look first-party.
+ */
+function isAnthropicAuthFlow(): boolean {
+  try {
+    const profile = getActiveProviderProfile()
+    if (profile?.provider === 'openai') return false
+    if (profile?.provider === 'anthropic') return true
+  } catch {
+    // Config access failed — fall through to env detection.
+  }
+  return getAPIProvider() === 'firstParty'
+}
 import { getIsNonInteractiveSession } from '../../bootstrap/state.js'
 import {
   API_PDF_MAX_PAGES,
@@ -823,7 +842,7 @@ export function getAssistantMessageFromError(
   if (
     error instanceof Error &&
     error.message.toLowerCase().includes('x-api-key') &&
-    getAPIProvider() === 'firstParty'
+    isAnthropicAuthFlow()
   ) {
     // In CCR mode, auth is via JWTs - this is likely a transient network issue
     if (isCCRMode()) {
@@ -885,11 +904,14 @@ export function getAssistantMessageFromError(
       })
     }
 
+    const isAnthropic = isAnthropicAuthFlow()
     return createAssistantAPIErrorMessage({
       error: 'authentication_failed',
       content: getIsNonInteractiveSession()
         ? `Failed to authenticate. ${API_ERROR_MESSAGE_PREFIX}: ${error.message}`
-        : `Please run /login · ${API_ERROR_MESSAGE_PREFIX}: ${error.message}`,
+        : isAnthropic
+          ? `Please run /login · ${API_ERROR_MESSAGE_PREFIX}: ${error.message}`
+          : `Provider authentication failed · run /provider to update credentials · ${API_ERROR_MESSAGE_PREFIX}: ${error.message}`,
     })
   }
 
