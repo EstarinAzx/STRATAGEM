@@ -377,7 +377,7 @@ export function ModelPicker(t0) {
   }
   let t29;
   if ($[80] !== content) {
-    t29 = <Pane color="permission">{content}</Pane>;
+    t29 = <Pane color="permission" title="MODEL SELECT">{content}</Pane>;
     $[80] = content;
     $[81] = t29;
   } else {

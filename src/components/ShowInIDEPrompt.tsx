@@ -156,7 +156,7 @@ export function ShowInIDEPrompt(t0) {
   }
   let t13;
   if ($[31] !== t1 || $[32] !== t10 || $[33] !== t12 || $[34] !== t2) {
-    t13 = <Pane color="permission"><Box flexDirection="column" gap={1}>{t1}{t2}{t3}{t10}{t12}</Box></Pane>;
+    t13 = <Pane color="permission" title="IDE BRIDGE"><Box flexDirection="column" gap={1}>{t1}{t2}{t3}{t10}{t12}</Box></Pane>;
     $[31] = t1;
     $[32] = t10;
     $[33] = t12;

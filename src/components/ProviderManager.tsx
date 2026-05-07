@@ -1838,5 +1838,5 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
       break
   }
 
-  return <Pane color="permission">{content}</Pane>
+  return <Pane color="permission" title="PROVIDER UPLINK">{content}</Pane>
 }

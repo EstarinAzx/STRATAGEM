@@ -256,7 +256,7 @@ export function Doctor(t0) {
   if (!diagnostic) {
     let t10;
     if ($[16] === Symbol.for("react.memo_cache_sentinel")) {
-      t10 = <Pane><Text dimColor={true}>Checking installation status…</Text></Pane>;
+      t10 = <Pane title="DIAGNOSTICS"><Text dimColor={true}>Checking installation status…</Text></Pane>;
       $[16] = t10;
     } else {
       t10 = $[16];
@@ -486,7 +486,7 @@ export function Doctor(t0) {
   }
   let t41;
   if ($[76] !== t23 || $[77] !== t30 || $[78] !== t35 || $[79] !== t36 || $[80] !== t37 || $[81] !== t38 || $[82] !== t39) {
-    t41 = <Pane>{t23}{t30}{t31}{t32}{t33}{t34}{t35}{t36}{t37}{t38}{t39}{t40}</Pane>;
+    t41 = <Pane title="DIAGNOSTICS">{t23}{t30}{t31}{t32}{t33}{t34}{t35}{t36}{t37}{t38}{t39}{t40}</Pane>;
     $[76] = t23;
     $[77] = t30;
     $[78] = t35;

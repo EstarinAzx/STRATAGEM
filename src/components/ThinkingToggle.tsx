@@ -140,7 +140,7 @@ export function ThinkingToggle(t0) {
   }
   let t11;
   if ($[24] !== t10 || $[25] !== t9) {
-    t11 = <Pane color="permission">{t9}{t10}</Pane>;
+    t11 = <Pane color="permission" title="COGNITION">{t9}{t10}</Pane>;
     $[24] = t10;
     $[25] = t9;
     $[26] = t11;

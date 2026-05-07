@@ -300,7 +300,7 @@ function StatsContent(t0) {
   }
   let t12;
   if ($[31] !== t11 || $[32] !== t9) {
-    t12 = <Pane color="claude">{t9}{t11}</Pane>;
+    t12 = <Pane color="claude" title="STATS">{t9}{t11}</Pane>;
     $[31] = t11;
     $[32] = t9;
     $[33] = t12;

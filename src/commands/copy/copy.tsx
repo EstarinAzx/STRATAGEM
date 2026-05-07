@@ -308,7 +308,7 @@ function CopyPicker(t0) {
   }
   let t13;
   if ($[30] !== handleKeyDown || $[31] !== t11) {
-    t13 = <Pane><Box flexDirection="column" gap={1} tabIndex={0} autoFocus={true} onKeyDown={handleKeyDown}>{t7}{t11}{t12}</Box></Pane>;
+    t13 = <Pane title="COPY"><Box flexDirection="column" gap={1} tabIndex={0} autoFocus={true} onKeyDown={handleKeyDown}>{t7}{t11}{t12}</Box></Pane>;
     $[30] = handleKeyDown;
     $[31] = t11;
     $[32] = t13;

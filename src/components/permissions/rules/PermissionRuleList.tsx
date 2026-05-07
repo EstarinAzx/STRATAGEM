@@ -1140,7 +1140,7 @@ export function PermissionRuleList(t0) {
   }
   let t32;
   if ($[107] !== t30 || $[108] !== t31) {
-    t32 = <Pane color="permission">{t30}{t31}</Pane>;
+    t32 = <Pane color="permission" title="PERMISSIONS">{t30}{t31}</Pane>;
     $[107] = t30;
     $[108] = t31;
     $[109] = t32;

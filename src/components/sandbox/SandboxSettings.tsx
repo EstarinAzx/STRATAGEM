@@ -211,7 +211,7 @@ export function SandboxSettings(t0) {
   const tabs = t16;
   let t17;
   if ($[32] !== tabs) {
-    t17 = <Pane color="permission"><Tabs title="Sandbox:" color="permission" defaultTab="Mode">{tabs}</Tabs></Pane>;
+    t17 = <Pane color="permission" title="SANDBOX"><Tabs title="Sandbox:" color="permission" defaultTab="Mode">{tabs}</Tabs></Pane>;
     $[32] = tabs;
     $[33] = t17;
   } else {

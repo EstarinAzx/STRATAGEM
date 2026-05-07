@@ -163,7 +163,7 @@ export function HelpV2(t0) {
   }
   let t9;
   if ($[38] !== t6 || $[39] !== t8) {
-    t9 = <Pane color="professionalBlue">{t6}{t7}{t8}</Pane>;
+    t9 = <Pane color="professionalBlue" title="HELP">{t6}{t7}{t8}</Pane>;
     $[38] = t6;
     $[39] = t8;
     $[40] = t9;
