@@ -1478,7 +1478,7 @@ export function Config({
       }} hideEscToCancel skipExitHandling={true} // Skip exit handling as Config already handles it
       />
           <Box>
-            <Text dimColor italic>
+            <Text color="gray" italic>
               <Byline>
                 <KeyboardShortcutHint shortcut="Enter" action="select" />
                 <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="cancel" />
@@ -1495,7 +1495,7 @@ export function Config({
         setShowSubmenu(null);
         setTabsHidden(false);
       }} showFastModeNotice={isFastModeEnabled() ? isFastMode && isFastModeSupportedByModel(mainLoopModel) && isFastModeAvailable() : false} />
-          <Text dimColor>
+          <Text color="gray">
             <Byline>
               <KeyboardShortcutHint shortcut="Enter" action="confirm" />
               <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="cancel" />
@@ -1531,7 +1531,7 @@ export function Config({
         setShowSubmenu(null);
         setTabsHidden(false);
       }} />
-          <Text dimColor>
+          <Text color="gray">
             <Byline>
               <KeyboardShortcutHint shortcut="Enter" action="confirm" />
               <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="cancel" />
@@ -1542,7 +1542,7 @@ export function Config({
         setShowSubmenu(null);
         setTabsHidden(false);
       }} externalIncludes={getExternalClaudeMdIncludes(memoryFiles)} />
-          <Text dimColor>
+          <Text color="gray">
             <Byline>
               <KeyboardShortcutHint shortcut="Enter" action="confirm" />
               <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="disable external includes" />
@@ -1568,7 +1568,7 @@ export function Config({
         setShowSubmenu(null);
         setTabsHidden(false);
       }} />
-          <Text dimColor>
+          <Text color="gray">
             <Byline>
               <KeyboardShortcutHint shortcut="Enter" action="confirm" />
               <ConfigurableShortcutHint action="confirm:no" context="Confirmation" fallback="Esc" description="cancel" />
@@ -1593,7 +1593,7 @@ export function Config({
         setShowSubmenu(null);
         setTabsHidden(false);
       }} />
-          <Text dimColor>
+          <Text color="gray">
             <Byline>
               <KeyboardShortcutHint shortcut="Enter" action="confirm" />
               <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" />
@@ -1607,7 +1607,7 @@ export function Config({
               <Text>
                 {autoUpdaterDisabledReason?.type === 'env' ? 'Auto-updates are controlled by an environment variable and cannot be changed here.' : 'Auto-updates are disabled in development builds.'}
               </Text>
-              {autoUpdaterDisabledReason?.type === 'env' && <Text dimColor>
+              {autoUpdaterDisabledReason?.type === 'env' && <Text color="gray">
                   Unset {autoUpdaterDisabledReason.envVar} to re-enable
                   auto-updates.
                 </Text>}
@@ -1673,10 +1673,10 @@ export function Config({
     }} /> : <Box flexDirection="column" gap={1} marginY={insideModal ? undefined : 1}>
           <SearchBox query={searchQuery} isFocused={isSearchMode && !headerFocused} isTerminalFocused={isTerminalFocused} cursorOffset={searchCursorOffset} placeholder="Search settings�" />
           <Box flexDirection="column">
-            {filteredSettingsItems.length === 0 ? <Text dimColor italic>
+            {filteredSettingsItems.length === 0 ? <Text color="gray" italic>
                 No settings match &quot;{searchQuery}&quot;
               </Text> : <>
-                {scrollOffset > 0 && <Text dimColor>
+                {scrollOffset > 0 && <Text color="gray">
                     {figures.arrowUp} {scrollOffset} more above
                   </Text>}
                 {filteredSettingsItems.slice(scrollOffset, scrollOffset + maxVisible).map((setting_2, i) => {
@@ -1711,7 +1711,7 @@ export function Config({
                                 <Text color={isSelected ? 'suggestion' : undefined}>
                                   disabled
                                 </Text>
-                                <Text dimColor>
+                                <Text color="gray">
                                   (
                                   {formatAutoUpdaterDisabledReason(autoUpdaterDisabledReason)}
                                   )
@@ -1723,27 +1723,27 @@ export function Config({
                         </Box>
                       </React.Fragment>;
           })}
-                {scrollOffset + maxVisible < filteredSettingsItems.length && <Text dimColor>
+                {scrollOffset + maxVisible < filteredSettingsItems.length && <Text color="gray">
                     {figures.arrowDown}{' '}
                     {filteredSettingsItems.length - scrollOffset - maxVisible}{' '}
                     more below
                   </Text>}
               </>}
           </Box>
-          {headerFocused ? <Text dimColor>
+          {headerFocused ? <Text color="gray">
               <Byline>
                 <KeyboardShortcutHint shortcut="?/? tab" action="switch" />
                 <KeyboardShortcutHint shortcut="?" action="return" />
                 <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="close" />
               </Byline>
-            </Text> : isSearchMode ? <Text dimColor>
+            </Text> : isSearchMode ? <Text color="gray">
               <Byline>
                 <Text>Type to filter</Text>
                 <KeyboardShortcutHint shortcut="Enter/?" action="select" />
                 <KeyboardShortcutHint shortcut="?" action="tabs" />
                 <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="clear" />
               </Byline>
-            </Text> : <Text dimColor>
+            </Text> : <Text color="gray">
               <Byline>
                 <ConfigurableShortcutHint action="select:accept" context="Settings" fallback="Space" description="change" />
                 <ConfigurableShortcutHint action="settings:close" context="Settings" fallback="Enter" description="save" />
@@ -1784,7 +1784,7 @@ function NotifChannelLabel(t0) {
       {
         let t1;
         if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
-          t1 = <Text>iTerm2 <Text dimColor={true}>(OSC 9)</Text></Text>;
+          t1 = <Text>iTerm2 <Text color="gray">(OSC 9)</Text></Text>;
           $[0] = t1;
         } else {
           t1 = $[0];
@@ -1795,7 +1795,7 @@ function NotifChannelLabel(t0) {
       {
         let t1;
         if ($[1] === Symbol.for("react.memo_cache_sentinel")) {
-          t1 = <Text>Terminal Bell <Text dimColor={true}>(\a)</Text></Text>;
+          t1 = <Text>Terminal Bell <Text color="gray">(\a)</Text></Text>;
           $[1] = t1;
         } else {
           t1 = $[1];
@@ -1806,7 +1806,7 @@ function NotifChannelLabel(t0) {
       {
         let t1;
         if ($[2] === Symbol.for("react.memo_cache_sentinel")) {
-          t1 = <Text>Kitty <Text dimColor={true}>(OSC 99)</Text></Text>;
+          t1 = <Text>Kitty <Text color="gray">(OSC 99)</Text></Text>;
           $[2] = t1;
         } else {
           t1 = $[2];
@@ -1817,7 +1817,7 @@ function NotifChannelLabel(t0) {
       {
         let t1;
         if ($[3] === Symbol.for("react.memo_cache_sentinel")) {
-          t1 = <Text>Ghostty <Text dimColor={true}>(OSC 777)</Text></Text>;
+          t1 = <Text>Ghostty <Text color="gray">(OSC 777)</Text></Text>;
           $[3] = t1;
         } else {
           t1 = $[3];

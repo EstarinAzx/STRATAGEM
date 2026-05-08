@@ -6,15 +6,17 @@
  * to ScrollBox's imperative handle — snapshot returns a stable string key
  * so useSyncExternalStore doesn't infinite-loop on object identity.
  *
- * Click-to-jump: clicking anywhere on the track scrolls to that proportional
- * position in the document. The noSelect style prevents text selection from
- * interfering with click events.
+ * Click-to-jump: clicking on track outside the thumb jumps to that
+ * proportional position. Drag: pressing on the thumb captures subsequent
+ * mouse-move events (via onPress + event.beginDrag) so the user can drag
+ * the thumb up/down to scroll. The noSelect style prevents text selection
+ * from interfering with mouse events.
  */
-import React, { type RefObject, useCallback, useMemo } from 'react'
+import React, { type RefObject, useCallback, useMemo, useRef } from 'react'
 import { useSyncExternalStore } from 'react'
 import { Box, Text } from '../ink.js'
 import type { ScrollBoxHandle } from '../ink/components/ScrollBox.js'
-import type { ClickEvent } from '../ink/events/click-event.js'
+import type { PressEvent } from '../ink/events/press-event.js'
 import { useTerminalSize } from '../hooks/useTerminalSize.js'
 
 const NOOP_UNSUB = () => {}
@@ -51,16 +53,98 @@ export function ScrollIndicator({
   const scrollHeight = Number(parts[1])
   const viewportHeight = Number(parts[2])
 
-  // Click handler: clicking on the track jumps to that proportional position.
-  const handleClick = useCallback(
-    (event: ClickEvent) => {
+  // Drag state: anchor row at press time + scrollTop at press time. onMove
+  // computes a new scrollTop from the row delta (1 row = 1 thumb step). A
+  // ref keeps the values stable across renders without retriggering the
+  // useCallback below.
+  const dragRef = useRef<{ pressRow: number; pressScrollTop: number } | null>(
+    null,
+  )
+
+  // Press handler: if the press lands on the thumb, beginDrag captures
+  // subsequent move/release events so the user can drag the thumb up/down.
+  // Click on track (off-thumb) falls through to the click-to-jump branch
+  // below — onClick fires on release-without-drag.
+  const handlePress = useCallback(
+    (event: PressEvent) => {
       const s = scrollRef?.current
       if (!s) return
       const sh = s.getScrollHeight()
       const vh = s.getViewportHeight()
       if (sh <= vh) return
 
-      // localRow is the row within the scrollbar Box that was clicked
+      // Recompute thumb geometry — captures current scroll position so we
+      // know which rows are the thumb vs the track.
+      const trackHeight = Math.max(3, vh - 1)
+      const ratio = vh / sh
+      const thumbSize = Math.max(1, Math.round(trackHeight * ratio))
+      const maxScroll = sh - vh
+      const scrollFraction = maxScroll > 0 ? Math.min(1, s.getScrollTop() / maxScroll) : 0
+      const maxThumbTop = trackHeight - thumbSize
+      const thumbTop = Math.round(scrollFraction * maxThumbTop)
+
+      const onThumb =
+        event.localRow >= thumbTop && event.localRow < thumbTop + thumbSize
+
+      if (!onThumb || maxThumbTop <= 0) {
+        // Off-thumb press — let onClick handle jump-to. Don't capture.
+        return
+      }
+
+      // Capture the drag. Record press row and scrollTop; onMove maps
+      // row deltas → scrollTop deltas using the inverse of the thumb-pos
+      // formula so 1 thumb step = (maxScroll / maxThumbTop) scroll rows.
+      const pressRow = event.row
+      const pressScrollTop = s.getScrollTop()
+      dragRef.current = { pressRow, pressScrollTop }
+
+      event.beginDrag({
+        onMove: (_col, row) => {
+          const cur = dragRef.current
+          if (!cur) return
+          const handle = scrollRef?.current
+          if (!handle) return
+          const curSh = handle.getScrollHeight()
+          const curVh = handle.getViewportHeight()
+          if (curSh <= curVh) return
+          const curMaxScroll = curSh - curVh
+          const curTrackHeight = Math.max(3, curVh - 1)
+          const curRatio = curVh / curSh
+          const curThumbSize = Math.max(1, Math.round(curTrackHeight * curRatio))
+          const curMaxThumbTop = curTrackHeight - curThumbSize
+          if (curMaxThumbTop <= 0) return
+          const scrollPerThumbStep = curMaxScroll / curMaxThumbTop
+          const rowDelta = row - cur.pressRow
+          const target = Math.max(
+            0,
+            Math.min(
+              curMaxScroll,
+              Math.round(cur.pressScrollTop + rowDelta * scrollPerThumbStep),
+            ),
+          )
+          handle.scrollTo(target)
+        },
+        onEnd: () => {
+          dragRef.current = null
+        },
+      })
+      event.stopImmediatePropagation()
+    },
+    [scrollRef],
+  )
+
+  // Click handler: clicking on the track (off-thumb) jumps to that
+  // proportional position. Click-on-thumb is suppressed because press
+  // captures the drag (onClick won't fire after a captured drag — App
+  // routes release to onEnd, not click dispatch).
+  const handleClick = useCallback(
+    (event: { localRow: number; stopImmediatePropagation: () => void }) => {
+      const s = scrollRef?.current
+      if (!s) return
+      const sh = s.getScrollHeight()
+      const vh = s.getViewportHeight()
+      if (sh <= vh) return
+
       const trackHeight = Math.max(3, vh - 1)
       const clickFraction = trackHeight > 1 ? event.localRow / (trackHeight - 1) : 0
       const maxScroll = sh - vh
@@ -107,6 +191,7 @@ export function ScrollIndicator({
       bottom={0}
       width={1}
       flexDirection="column"
+      onPress={handlePress}
       onClick={handleClick}
       noSelect={true}
     >

@@ -1,6 +1,7 @@
 import type { DOMElement } from './dom.js'
 import { ClickEvent } from './events/click-event.js'
 import type { EventHandlerProps } from './events/event-handlers.js'
+import { PressEvent, type DragHandler } from './events/press-event.js'
 import { nodeCache } from './node-cache.js'
 
 /**
@@ -86,6 +87,39 @@ export function dispatchClick(
     target = target.parentNode
   }
   return handled
+}
+
+/**
+ * Hit-test the root at (col, row) and bubble a PressEvent up through
+ * parentNode. Only nodes with an onPress handler fire. Returns the
+ * DragHandler installed via event.beginDrag(...) — non-null means the
+ * caller should suppress text-selection start and route subsequent
+ * move/release events to that handler.
+ */
+export function dispatchPress(
+  root: DOMElement,
+  col: number,
+  row: number,
+): DragHandler | null {
+  let target: DOMElement | undefined = hitTest(root, col, row) ?? undefined
+  if (!target) return null
+  const event = new PressEvent(col, row)
+  while (target) {
+    const handler = target._eventHandlers?.onPress as
+      | ((event: PressEvent) => void)
+      | undefined
+    if (handler) {
+      const rect = nodeCache.get(target)
+      if (rect) {
+        event.localCol = col - rect.x
+        event.localRow = row - rect.y
+      }
+      handler(event)
+      if (event.didStopImmediatePropagation()) break
+    }
+    target = target.parentNode
+  }
+  return event._getDragHandler()
 }
 
 /**

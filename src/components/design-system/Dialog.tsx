@@ -29,7 +29,7 @@ type DialogProps = {
   isCancelActive?: boolean;
 };
 export function Dialog(t0) {
-  const $ = _c(27);
+  const $ = _c(28);
   const {
     title,
     subtitle,
@@ -66,15 +66,11 @@ export function Dialog(t0) {
     t4 = $[4];
   }
   const defaultInputGuide = t4;
-  let t5;
-  if ($[5] !== color || $[6] !== title) {
-    t5 = <Text bold={true} color={color}>BREACH // {title}</Text>;
-    $[5] = color;
-    $[6] = title;
-    $[7] = t5;
-  } else {
-    t5 = $[7];
-  }
+  // Title is rendered on the Pane's top border via the `title` prop —
+  // matches the chrome of other Pane callers (HelpV2, ModelPicker,
+  // FuzzyPicker, etc.). Subtitle stays inline as a claude-colored line
+  // immediately under the border so the screen stays distinct from a
+  // bare Pane.
   let t6;
   if ($[8] !== subtitle) {
     t6 = subtitle && <Text color="claude">{subtitle}</Text>;
@@ -83,20 +79,11 @@ export function Dialog(t0) {
   } else {
     t6 = $[9];
   }
-  let t7;
-  if ($[10] !== t5 || $[11] !== t6) {
-    t7 = <Box flexDirection="column">{t5}{t6}</Box>;
-    $[10] = t5;
-    $[11] = t6;
-    $[12] = t7;
-  } else {
-    t7 = $[12];
-  }
   let t8;
-  if ($[13] !== children || $[14] !== t7) {
-    t8 = <Box flexDirection="column" gap={1}>{t7}{children}</Box>;
+  if ($[13] !== children || $[14] !== t6) {
+    t8 = <Box flexDirection="column" gap={1}>{t6}{children}</Box>;
     $[13] = children;
-    $[14] = t7;
+    $[14] = t6;
     $[15] = t8;
   } else {
     t8 = $[15];
@@ -125,14 +112,22 @@ export function Dialog(t0) {
   if (hideBorder) {
     return content;
   }
+  // title can be ReactNode in DialogProps; Pane.title is string. Coerce
+  // string-y titles for the border (the common case); fall back to no
+  // border title for ReactNode titles, so existing rich titles still
+  // render somewhere — they get pushed to the body header below.
+  const paneTitle = typeof title === 'string' ? title : undefined;
   let t11;
-  if ($[24] !== color || $[25] !== content) {
-    t11 = <Pane color={color}>{content}</Pane>;
+  if ($[24] !== color || $[25] !== content || $[26] !== paneTitle) {
+    t11 = paneTitle
+      ? <Pane color={color} title={paneTitle}>{content}</Pane>
+      : <Pane color={color}>{typeof title !== 'string' && title ? <Box flexDirection="column"><Text bold={true} color={color}>BREACH // {title}</Text>{content}</Box> : content}</Pane>;
     $[24] = color;
     $[25] = content;
-    $[26] = t11;
+    $[26] = paneTitle;
+    $[27] = t11;
   } else {
-    t11 = $[26];
+    t11 = $[27];
   }
   return t11;
 }

@@ -31,6 +31,12 @@ import { isTerminalStatus } from './tasks/taskStatusUtils.js';
 export function getVisibleAgentTasks(tasks: AppState['tasks']): LocalAgentTaskState[] {
   return Object.values(tasks).filter((t): t is LocalAgentTaskState => isPanelAgentTask(t) && t.evictAfter !== 0).sort((a, b) => a.startTime - b.startTime);
 }
+// 4-frame pulse animation cycled through PULSE_INTERVAL_MS while any task
+// is running. Drives the live "alive" indicator on AgentLine.
+const PULSE_FRAMES = ['◐', '◓', '◑', '◒']
+const PULSE_INTERVAL_MS = 200
+const EVICT_TICK_MS = 1000
+
 export function CoordinatorTaskPanel(): React.ReactNode {
   const tasks = useAppState(s => s.tasks);
   const viewingAgentTaskId = useAppState(s_0 => s_0.viewingAgentTaskId);
@@ -41,6 +47,8 @@ export function CoordinatorTaskPanel(): React.ReactNode {
   const setAppState = useSetAppState();
   const visibleTasks = getVisibleAgentTasks(tasks);
   const hasTasks = Object.values(tasks).some(isPanelAgentTask);
+  const hasRunningTask = visibleTasks.some(t_5 => !isTerminalStatus(t_5.status));
+  const [pulseFrame, setPulseFrame] = React.useState(0);
 
   // 1s tick: re-render for elapsed time + evict tasks past their deadline.
   // The eviction deletes from prev.tasks, which makes useCoordinatorTaskCount
@@ -58,9 +66,20 @@ export function CoordinatorTaskPanel(): React.ReactNode {
         }
       }
       setTick_0((prev: number) => prev + 1);
-    }, 1000, tasksRef, setAppState, setTick);
+    }, EVICT_TICK_MS, tasksRef, setAppState, setTick);
     return () => clearInterval(interval);
   }, [hasTasks, setAppState]);
+
+  // Faster pulse tick — only runs while at least one task is running, so
+  // idle panels don't burn CPU re-rendering. Cancelled when the last
+  // running task finishes.
+  React.useEffect(() => {
+    if (!hasRunningTask) return;
+    const interval = setInterval(() => {
+      setPulseFrame(prev => (prev + 1) % PULSE_FRAMES.length);
+    }, PULSE_INTERVAL_MS);
+    return () => clearInterval(interval);
+  }, [hasRunningTask]);
   const nameByAgentId = React.useMemo(() => {
     const inv = new Map<string, string>();
     for (const [n, id] of agentNameRegistry) inv.set(id, n);
@@ -71,7 +90,7 @@ export function CoordinatorTaskPanel(): React.ReactNode {
   }
   return <Box flexDirection="column" marginTop={1} borderStyle="single" borderColor="promptBorder" borderText={{ content: ' BREACH // TASK BUS ', position: 'top', align: 'start', offset: 1 }} paddingX={1}>
       <MainLine isSelected={selectedIndex === 0} isViewed={viewingAgentTaskId === undefined} onClick={() => exitTeammateView(setAppState)} />
-      {visibleTasks.map((task, i) => <AgentLine key={task.id} task={task} name={nameByAgentId.get(task.id)} isSelected={selectedIndex === i + 1} isViewed={viewingAgentTaskId === task.id} onClick={() => enterTeammateView(task.id, setAppState)} />)}
+      {visibleTasks.map((task, i) => <AgentLine key={task.id} task={task} name={nameByAgentId.get(task.id)} isSelected={selectedIndex === i + 1} isViewed={viewingAgentTaskId === task.id} pulseChar={PULSE_FRAMES[pulseFrame]!} onClick={() => enterTeammateView(task.id, setAppState)} />)}
     </Box>;
 }
 
@@ -113,7 +132,7 @@ function MainLine(t0) {
   const t3 = !isSelected && !isViewed && !hover;
   let t4;
   if ($[2] !== bullet || $[3] !== isViewed || $[4] !== prefix || $[5] !== t3) {
-    t4 = <Text dimColor={t3} bold={isViewed}>{prefix}{bullet} main</Text>;
+    t4 = <Text color={t3 ? "gray" : undefined} bold={isViewed}>{prefix}{bullet} main</Text>;
     $[2] = bullet;
     $[3] = isViewed;
     $[4] = prefix;
@@ -138,15 +157,18 @@ type AgentLineProps = {
   name?: string;
   isSelected?: boolean;
   isViewed?: boolean;
+  /** Live pulse character for the running indicator (cycles 4 frames). */
+  pulseChar: string;
   onClick?: () => void;
 };
 function AgentLine(t0) {
-  const $ = _c(32);
+  const $ = _c(34);
   const {
     task,
     name,
     isSelected,
     isViewed,
+    pulseChar,
     onClick
   } = t0;
   const {
@@ -183,7 +205,10 @@ function AgentLine(t0) {
   const displayDescription = task.progress?.summary || task.description;
   const highlighted = isSelected || hover;
   const prefix = highlighted ? figures.pointer + " " : "  ";
-  const bullet = isViewed ? BLACK_CIRCLE : figures.circle;
+  // Running tasks show the live pulse char (driven by the parent's 200ms
+  // tick) instead of the static circle. Terminal-status tasks revert to
+  // the original static bullet so completed/failed agents stop pulsing.
+  const bullet = isRunning ? pulseChar : (isViewed ? BLACK_CIRCLE : figures.circle);
   const dim = !highlighted && !isViewed;
   const sep = isRunning ? PLAY_ICON : PAUSE_ICON;
   const namePart = name ? `${name}: ` : "";
@@ -220,16 +245,21 @@ function AgentLine(t0) {
   }
   let t7;
   if ($[13] !== hintPart) {
-    t7 = hintPart && <Text dimColor={true}>{hintPart}</Text>;
+    t7 = hintPart && <Text color="gray">{hintPart}</Text>;
     $[13] = hintPart;
     $[14] = t7;
   } else {
     t7 = $[14];
   }
+  // Pulse bullet renders cyan when running so the live indicator pops out
+  // of the gray-dimmed line; static bullets pick up the line's color.
+  const bulletNode = isRunning
+    ? <Text color="cyan_FOR_SUBAGENTS_ONLY">{bullet}</Text>
+    : bullet;
   let t8;
-  if ($[15] !== bullet || $[16] !== dim || $[17] !== elapsed || $[18] !== isViewed || $[19] !== prefix || $[20] !== sep || $[21] !== t5 || $[22] !== t6 || $[23] !== t7 || $[24] !== tokenText || $[25] !== truncated) {
-    t8 = <Text dimColor={dim} bold={isViewed}>{prefix}{bullet}{" "}{t5}{truncated} {sep} {elapsed}{tokenText}{t6}{t7}</Text>;
-    $[15] = bullet;
+  if ($[15] !== bulletNode || $[16] !== dim || $[17] !== elapsed || $[18] !== isViewed || $[19] !== prefix || $[20] !== sep || $[21] !== t5 || $[22] !== t6 || $[23] !== t7 || $[24] !== tokenText || $[25] !== truncated) {
+    t8 = <Text color={dim ? "gray" : undefined} bold={isViewed}>{prefix}{bulletNode}{" "}{t5}{truncated} {sep} {elapsed}{tokenText}{t6}{t7}</Text>;
+    $[15] = bulletNode;
     $[16] = dim;
     $[17] = elapsed;
     $[18] = isViewed;

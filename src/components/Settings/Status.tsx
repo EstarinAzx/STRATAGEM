@@ -19,7 +19,7 @@ type Props = {
 function buildPrimarySection(): Property[] {
   const sessionId = getSessionId();
   const customTitle = getCurrentSessionTitle(sessionId);
-  const nameValue = customTitle ?? <Text dimColor>/rename to add a name</Text>;
+  const nameValue = customTitle ?? <Text color="gray">/rename to add a name</Text>;
   return [{
     label: 'Version',
     value: MACRO.DISPLAY_VERSION ?? MACRO.VERSION
@@ -169,7 +169,7 @@ export function Status(t0) {
   }
   let t7;
   if ($[16] === Symbol.for("react.memo_cache_sentinel")) {
-    t7 = <Text dimColor={true}><ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" /></Text>;
+    t7 = <Text color="gray"><ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" /></Text>;
     $[16] = t7;
   } else {
     t7 = $[16];

@@ -6,6 +6,7 @@ import { isMouseClicksDisabled } from '../../utils/fullscreen.js';
 import { logError } from '../../utils/log.js';
 import { EventEmitter } from '../events/emitter.js';
 import { InputEvent } from '../events/input-event.js';
+import type { DragHandler } from '../events/press-event.js';
 import { TerminalFocusEvent } from '../events/terminal-focus-event.js';
 import { INITIAL_STATE, type ParsedInput, type ParsedKey, type ParsedMouse, parseMultipleKeypresses } from '../parse-keypress.js';
 import reconciler from '../reconciler.js';
@@ -52,6 +53,12 @@ type Props = {
   // No-op (returns false) outside fullscreen mode (Ink.dispatchClick
   // gates on altScreenActive).
   readonly onClickAt: (col: number, row: number) => boolean;
+  // Dispatch a mouse-press at (col, row) — hit-tests and bubbles onPress
+  // handlers. Returns a DragHandler if a handler called event.beginDrag(),
+  // otherwise null. When non-null, App suppresses text-selection start and
+  // routes subsequent move/release events to the drag handler. No-op
+  // outside fullscreen mode.
+  readonly onPressAt: (col: number, row: number) => DragHandler | null;
   // Dispatch hover (onMouseEnter/onMouseLeave) as the pointer moves over
   // DOM elements. Called for mode-1003 motion events with no button held.
   // No-op outside fullscreen (Ink.dispatchHover gates on altScreenActive).
@@ -144,6 +151,11 @@ export default class App extends PureComponent<Props, State> {
   // repeat events (drag-then-release at same cell, etc.).
   lastHoverCol = -1;
   lastHoverRow = -1;
+  // Active drag handler installed via onPress + event.beginDrag(). When
+  // set, drag-motion and release events route here instead of the text
+  // selection system. Cleared on release (or if a non-left press arrives,
+  // which breaks the drag).
+  activeDrag: DragHandler | null = null;
 
   // Timestamp of last stdin chunk. Used to detect long gaps (tmux attach,
   // ssh reconnect, laptop wake) and trigger terminal mode re-assert.
@@ -575,12 +587,24 @@ export function handleMouseEvent(app: App, m: ParsedMouse): void {
       return;
     }
     if (baseButton !== 0) {
-      // Non-left press breaks the multi-click chain.
+      // Non-left press breaks the multi-click chain. Also breaks any
+      // active drag — middle/right clicks while dragging shouldn't be
+      // silently swallowed by the captured handler.
       app.clickCount = 0;
+      if (app.activeDrag) {
+        app.activeDrag.onEnd?.(col, row);
+        app.activeDrag = null;
+      }
       return;
     }
     if ((m.button & 0x20) !== 0) {
-      // Drag motion: mode-aware extension (char/word/line). onSelectionDrag
+      // Drag motion. If a press handler captured this drag via
+      // event.beginDrag(), route to it instead of extending text selection.
+      if (app.activeDrag) {
+        app.activeDrag.onMove?.(col, row);
+        return;
+      }
+      // Mode-aware selection extension (char/word/line). onSelectionDrag
       // calls notifySelectionChange internally — no extra onSelectionChange.
       app.props.onSelectionDrag(col, row);
       return;
@@ -617,6 +641,14 @@ export function handleMouseEvent(app: App, m: ParsedMouse): void {
       app.props.onMultiClick(col, row, count);
       return;
     }
+    // Dispatch onPress to the DOM tree. If a handler called
+    // event.beginDrag(), capture subsequent move/release events and skip
+    // the text-selection start. Otherwise fall through to selection.
+    const dragHandler = app.props.onPressAt(col, row);
+    if (dragHandler) {
+      app.activeDrag = dragHandler;
+      return;
+    }
     startSelection(sel, col, row);
     // SGR bit 0x08 = alt (xterm.js wires altKey here, not metaKey — see
     // comment at the hyperlink-open guard below). On macOS xterm.js,
@@ -624,6 +656,16 @@ export function handleMouseEvent(app: App, m: ParsedMouse): void {
     // xterm.js would have consumed the event for native selection).
     sel.lastPressHadAlt = (m.button & 0x08) !== 0;
     app.props.onSelectionChange();
+    return;
+  }
+
+  // Release while a captured drag is active: route to the drag handler
+  // and skip selection finish + click dispatch. Runs before the selection
+  // release path so a non-zero release button (some terminals) still ends
+  // the drag cleanly.
+  if (app.activeDrag) {
+    app.activeDrag.onEnd?.(col, row);
+    app.activeDrag = null;
     return;
   }
 

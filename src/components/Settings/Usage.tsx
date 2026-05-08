@@ -99,7 +99,7 @@ function LimitBar(t0) {
     }
     let t7;
     if ($[12] !== subtext) {
-      t7 = subtext && <Text dimColor={true}>{subtext}</Text>;
+      t7 = subtext && <Text color="gray">{subtext}</Text>;
       $[12] = subtext;
       $[13] = t7;
     } else {
@@ -127,7 +127,7 @@ function LimitBar(t0) {
     }
     let t3;
     if ($[20] !== subtext) {
-      t3 = subtext && <><Text> </Text><Text dimColor={true}>· {subtext}</Text></>;
+      t3 = subtext && <><Text> </Text><Text color="gray">· {subtext}</Text></>;
       $[20] = subtext;
       $[21] = t3;
     } else {
@@ -213,7 +213,7 @@ function AnthropicUsage(): React.ReactNode {
   if (error) {
     return <Box flexDirection="column" gap={1}>
         <Text color="error">Error: {error}</Text>
-        <Text dimColor>
+        <Text color="gray">
           <Byline>
             <ConfigurableShortcutHint action="settings:retry" context="Settings" fallback="r" description="retry" />
             <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" />
@@ -223,8 +223,8 @@ function AnthropicUsage(): React.ReactNode {
   }
   if (!utilization) {
     return <Box flexDirection="column" gap={1}>
-        <Text dimColor>Loading usage data…</Text>
-        <Text dimColor>
+        <Text color="gray">Loading usage data…</Text>
+        <Text color="gray">
           <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" />
         </Text>
       </Box>;
@@ -249,7 +249,7 @@ function AnthropicUsage(): React.ReactNode {
   return <Box flexDirection="column" gap={1} width="100%">
       {limits.some(({
       limit
-    }) => limit) || <Text dimColor>/usage is only available for subscription plans.</Text>}
+    }) => limit) || <Text color="gray">/usage is only available for subscription plans.</Text>}
 
       {limits.map(({
       title,
@@ -260,7 +260,7 @@ function AnthropicUsage(): React.ReactNode {
 
       {isEligibleForOverageCreditGrant() && <OverageCreditUpsell maxWidth={maxWidth} />}
 
-      <Text dimColor>
+      <Text color="gray">
         <ConfigurableShortcutHint action="confirm:no" context="Settings" fallback="Esc" description="cancel" />
       </Text>
     </Box>;
@@ -291,7 +291,7 @@ function ExtraUsageSection(t0) {
     if (extraUsageCommand.isEnabled()) {
       let t1;
       if ($[0] === Symbol.for("react.memo_cache_sentinel")) {
-        t1 = <Box flexDirection="column"><Text bold={true}>{EXTRA_USAGE_SECTION_TITLE}</Text><Text dimColor={true}>Extra usage not enabled · /extra-usage to enable</Text></Box>;
+        t1 = <Box flexDirection="column"><Text bold={true}>{EXTRA_USAGE_SECTION_TITLE}</Text><Text color="gray">Extra usage not enabled · /extra-usage to enable</Text></Box>;
         $[0] = t1;
       } else {
         t1 = $[0];
@@ -303,7 +303,7 @@ function ExtraUsageSection(t0) {
   if (extraUsage.monthly_limit === null) {
     let t1;
     if ($[1] === Symbol.for("react.memo_cache_sentinel")) {
-      t1 = <Box flexDirection="column"><Text bold={true}>{EXTRA_USAGE_SECTION_TITLE}</Text><Text dimColor={true}>Unlimited</Text></Box>;
+      t1 = <Box flexDirection="column"><Text bold={true}>{EXTRA_USAGE_SECTION_TITLE}</Text><Text color="gray">Unlimited</Text></Box>;
       $[1] = t1;
     } else {
       t1 = $[1];

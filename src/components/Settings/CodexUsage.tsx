@@ -49,7 +49,7 @@ function CodexUsageLimitBar({
           />
           <Text>{usedText}</Text>
         </Box>
-        {resetText ? <Text dimColor>{resetText}</Text> : null}
+        {resetText ? <Text color="gray">{resetText}</Text> : null}
       </Box>
     )
   }
@@ -61,7 +61,7 @@ function CodexUsageLimitBar({
         {resetText ? (
           <>
             <Text> </Text>
-            <Text dimColor>· {resetText}</Text>
+            <Text color="gray">· {resetText}</Text>
           </>
         ) : null}
       </Text>
@@ -87,7 +87,7 @@ function CodexUsageTextRow({
   return (
     <Text>
       <Text bold>{label}</Text>
-      <Text dimColor> · {value}</Text>
+      <Text color="gray"> · {value}</Text>
     </Text>
   )
 }
@@ -133,7 +133,7 @@ export function CodexUsage(): React.ReactNode {
     return (
       <Box flexDirection="column" gap={1}>
         <Text color="error">Error: {error}</Text>
-        <Text dimColor>
+        <Text color="gray">
           <Byline>
             <ConfigurableShortcutHint
               action="settings:retry"
@@ -156,8 +156,8 @@ export function CodexUsage(): React.ReactNode {
   if (!usage) {
     return (
       <Box flexDirection="column" gap={1}>
-        <Text dimColor>Loading Codex usage data…</Text>
-        <Text dimColor>
+        <Text color="gray">Loading Codex usage data…</Text>
+        <Text color="gray">
           <ConfigurableShortcutHint
             action="confirm:no"
             context="Settings"
@@ -174,10 +174,10 @@ export function CodexUsage(): React.ReactNode {
 
   return (
     <Box flexDirection="column" gap={1} width="100%">
-      {planType ? <Text dimColor>Plan: {planType}</Text> : null}
+      {planType ? <Text color="gray">Plan: {planType}</Text> : null}
 
       {rows.length === 0 ? (
-        <Text dimColor>Codex usage data is not available for this account.</Text>
+        <Text color="gray">Codex usage data is not available for this account.</Text>
       ) : null}
 
       {rows.map((row, index) =>
@@ -198,7 +198,7 @@ export function CodexUsage(): React.ReactNode {
         ),
       )}
 
-      <Text dimColor>
+      <Text color="gray">
         <ConfigurableShortcutHint
           action="confirm:no"
           context="Settings"

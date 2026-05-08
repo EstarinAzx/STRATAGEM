@@ -2,6 +2,7 @@ import type { ClickEvent } from './click-event.js'
 import type { FocusEvent } from './focus-event.js'
 import type { KeyboardEvent } from './keyboard-event.js'
 import type { PasteEvent } from './paste-event.js'
+import type { PressEvent } from './press-event.js'
 import type { ResizeEvent } from './resize-event.js'
 
 type KeyboardEventHandler = (event: KeyboardEvent) => void
@@ -9,6 +10,7 @@ type FocusEventHandler = (event: FocusEvent) => void
 type PasteEventHandler = (event: PasteEvent) => void
 type ResizeEventHandler = (event: ResizeEvent) => void
 type ClickEventHandler = (event: ClickEvent) => void
+type PressEventHandler = (event: PressEvent) => void
 type HoverEventHandler = () => void
 
 /**
@@ -33,6 +35,7 @@ export type EventHandlerProps = {
   onResize?: ResizeEventHandler
 
   onClick?: ClickEventHandler
+  onPress?: PressEventHandler
   onMouseEnter?: HoverEventHandler
   onMouseLeave?: HoverEventHandler
 }
@@ -51,6 +54,7 @@ export const HANDLER_FOR_EVENT: Record<
   paste: { bubble: 'onPaste', capture: 'onPasteCapture' },
   resize: { bubble: 'onResize' },
   click: { bubble: 'onClick' },
+  press: { bubble: 'onPress' },
 }
 
 /**
@@ -68,6 +72,7 @@ export const EVENT_HANDLER_PROPS = new Set<string>([
   'onPasteCapture',
   'onResize',
   'onClick',
+  'onPress',
   'onMouseEnter',
   'onMouseLeave',
 ])

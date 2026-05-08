@@ -319,7 +319,7 @@ export const TaskOutputTool: Tool<InputSchema, TaskOutputToolOutput> = buildTool
     if (!input.task_id) {
       return null;
     }
-    return <Text dimColor> {input.task_id}</Text>;
+    return <Text color="gray"> {input.task_id}</Text>;
   },
   renderToolUseProgressMessage(progressMessages) {
     const lastProgress = progressMessages[progressMessages.length - 1];
@@ -331,7 +331,7 @@ export const TaskOutputTool: Tool<InputSchema, TaskOutputToolOutput> = buildTool
           {progressData?.taskDescription && <Text>&nbsp;&nbsp;{progressData.taskDescription}</Text>}
           <Text>
             &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Waiting for task{' '}
-            <Text dimColor>(esc to give additional instructions)</Text>
+            <Text color="gray">(esc to give additional instructions)</Text>
           </Text>
         </Box>;
   },
@@ -371,7 +371,7 @@ function TaskOutputResultDisplay(t0) {
   if (!result.task) {
     let t3;
     if ($[2] === Symbol.for("react.memo_cache_sentinel")) {
-      t3 = <MessageResponse><Text dimColor={true}>No task output available</Text></MessageResponse>;
+      t3 = <MessageResponse><Text color="gray">No task output available</Text></MessageResponse>;
       $[2] = t3;
     } else {
       t3 = $[2];
@@ -474,7 +474,7 @@ function TaskOutputResultDisplay(t0) {
       }
       let t3;
       if ($[27] !== expandShortcut) {
-        t3 = <MessageResponse><Text dimColor={true}>Read output ({expandShortcut} to expand)</Text></MessageResponse>;
+        t3 = <MessageResponse><Text color="gray">Read output ({expandShortcut} to expand)</Text></MessageResponse>;
         $[27] = expandShortcut;
         $[28] = t3;
       } else {
@@ -485,7 +485,7 @@ function TaskOutputResultDisplay(t0) {
     if (result.retrieval_status === "timeout" || task.status === "running") {
       let t3;
       if ($[29] === Symbol.for("react.memo_cache_sentinel")) {
-        t3 = <MessageResponse><Text dimColor={true}>Task is still running…</Text></MessageResponse>;
+        t3 = <MessageResponse><Text color="gray">Task is still running…</Text></MessageResponse>;
         $[29] = t3;
       } else {
         t3 = $[29];
@@ -495,7 +495,7 @@ function TaskOutputResultDisplay(t0) {
     if (result.retrieval_status === "not_ready") {
       let t3;
       if ($[30] === Symbol.for("react.memo_cache_sentinel")) {
-        t3 = <MessageResponse><Text dimColor={true}>Task is still running…</Text></MessageResponse>;
+        t3 = <MessageResponse><Text color="gray">Task is still running…</Text></MessageResponse>;
         $[30] = t3;
       } else {
         t3 = $[30];
@@ -504,7 +504,7 @@ function TaskOutputResultDisplay(t0) {
     }
     let t3;
     if ($[31] === Symbol.for("react.memo_cache_sentinel")) {
-      t3 = <MessageResponse><Text dimColor={true}>Task not ready</Text></MessageResponse>;
+      t3 = <MessageResponse><Text color="gray">Task not ready</Text></MessageResponse>;
       $[31] = t3;
     } else {
       t3 = $[31];
@@ -532,7 +532,7 @@ function TaskOutputResultDisplay(t0) {
     }
     let t5;
     if ($[38] !== expandShortcut || $[39] !== task.output || $[40] !== verbose) {
-      t5 = !verbose && task.output && <Text dimColor={true}>{"     "}({expandShortcut} to expand)</Text>;
+      t5 = !verbose && task.output && <Text color="gray">{"     "}({expandShortcut} to expand)</Text>;
       $[38] = expandShortcut;
       $[39] = task.output;
       $[40] = verbose;

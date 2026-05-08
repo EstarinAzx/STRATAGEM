@@ -53,7 +53,7 @@ function McpConfigErrorSection(t0) {
   }
   let t5;
   if ($[10] === Symbol.for("react.memo_cache_sentinel")) {
-    t5 = <Text dimColor={true}>Location: </Text>;
+    t5 = <Text color="gray">Location: </Text>;
     $[10] = t5;
   } else {
     t5 = $[10];
@@ -68,7 +68,7 @@ function McpConfigErrorSection(t0) {
   }
   let t7;
   if ($[13] !== t6) {
-    t7 = <Box>{t5}<Text dimColor={true}>{t6}</Text></Box>;
+    t7 = <Box>{t5}<Text color="gray">{t6}</Text></Box>;
     $[13] = t6;
     $[14] = t7;
   } else {
@@ -113,11 +113,11 @@ function McpConfigErrorSection(t0) {
 }
 function _temp2(warning, i_0) {
   const serverName_0 = warning.mcpErrorMetadata?.serverName;
-  return <Box key={`warning-${i_0}`}><Text><Text dimColor={true}>└ </Text><Text color="warning">[Warning]</Text><Text dimColor={true}>{" "}{serverName_0 && `[${serverName_0}] `}{warning.path && warning.path !== "" ? `${warning.path}: ` : ""}{warning.message}</Text></Text></Box>;
+  return <Box key={`warning-${i_0}`}><Text><Text color="gray">└ </Text><Text color="warning">[Warning]</Text><Text color="gray">{" "}{serverName_0 && `[${serverName_0}] `}{warning.path && warning.path !== "" ? `${warning.path}: ` : ""}{warning.message}</Text></Text></Box>;
 }
 function _temp(error, i) {
   const serverName = error.mcpErrorMetadata?.serverName;
-  return <Box key={`error-${i}`}><Text><Text dimColor={true}>└ </Text><Text color="error">[Error]</Text><Text dimColor={true}>{" "}{serverName && `[${serverName}] `}{error.path && error.path !== "" ? `${error.path}: ` : ""}{error.message}</Text></Text></Box>;
+  return <Box key={`error-${i}`}><Text><Text color="gray">└ </Text><Text color="error">[Error]</Text><Text color="gray">{" "}{serverName && `[${serverName}] `}{error.path && error.path !== "" ? `${error.path}: ` : ""}{error.message}</Text></Text></Box>;
 }
 export function McpParsingWarnings() {
   const $ = _c(6);
@@ -181,7 +181,7 @@ export function McpParsingWarnings() {
   }
   let t5;
   if ($[5] === Symbol.for("react.memo_cache_sentinel")) {
-    t5 = <Box flexDirection="column" marginTop={1} marginBottom={1}>{t4}<Box marginTop={1}><Text dimColor={true}>For help configuring MCP servers, see:{" "}<Link url="https://code.claude.com/docs/en/mcp">https://code.claude.com/docs/en/mcp</Link></Text></Box>{scopes.map(_temp5)}</Box>;
+    t5 = <Box flexDirection="column" marginTop={1} marginBottom={1}>{t4}<Box marginTop={1}><Text color="gray">For help configuring MCP servers, see:{" "}<Link url="https://code.claude.com/docs/en/mcp">https://code.claude.com/docs/en/mcp</Link></Text></Box>{scopes.map(_temp5)}</Box>;
     $[5] = t5;
   } else {
     t5 = $[5];

@@ -145,7 +145,7 @@ export function MCPReconnect(t0) {
     }
     let t7;
     if ($[20] !== error) {
-      t7 = <Text dimColor={true}>Error: {error}</Text>;
+      t7 = <Text color="gray">Error: {error}</Text>;
       $[20] = error;
       $[21] = t7;
     } else {

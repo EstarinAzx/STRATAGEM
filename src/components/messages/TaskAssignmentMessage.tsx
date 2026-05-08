@@ -7,22 +7,14 @@ type Props = {
 };
 
 /**
- * Renders a task assignment with a cyan border (team-related color).
+ * Renders a task assignment with a full-rectangle cyan border and a
+ * `─ TASK #N ASSIGNED BY X ─` breach-edge title.
  */
 export function TaskAssignmentDisplay(t0) {
-  const $ = _c(11);
+  const $ = _c(9);
   const {
     assignment
   } = t0;
-  let t1;
-  if ($[0] !== assignment.assignedBy || $[1] !== assignment.taskId) {
-    t1 = <Box marginBottom={1}><Text color="cyan_FOR_SUBAGENTS_ONLY" bold={true}>Task #{assignment.taskId} assigned by {assignment.assignedBy}</Text></Box>;
-    $[0] = assignment.assignedBy;
-    $[1] = assignment.taskId;
-    $[2] = t1;
-  } else {
-    t1 = $[2];
-  }
   let t2;
   if ($[3] !== assignment.subject) {
     t2 = <Box><Text bold={true}>{assignment.subject}</Text></Box>;
@@ -33,21 +25,22 @@ export function TaskAssignmentDisplay(t0) {
   }
   let t3;
   if ($[5] !== assignment.description) {
-    t3 = assignment.description && <Box marginTop={1}><Text dimColor={true}>{assignment.description}</Text></Box>;
+    t3 = assignment.description && <Box marginTop={1}><Text color="gray">{assignment.description}</Text></Box>;
     $[5] = assignment.description;
     $[6] = t3;
   } else {
     t3 = $[6];
   }
+  const borderTitle = ` TASK #${assignment.taskId} ASSIGNED BY ${assignment.assignedBy.toUpperCase()} `;
   let t4;
-  if ($[7] !== t1 || $[8] !== t2 || $[9] !== t3) {
-    t4 = <Box flexDirection="column" marginY={1}><Box borderStyle="round" borderColor="cyan_FOR_SUBAGENTS_ONLY" flexDirection="column" paddingX={1} paddingY={1}>{t1}{t2}{t3}</Box></Box>;
-    $[7] = t1;
+  if ($[7] !== borderTitle || $[8] !== t2 || $[0] !== t3) {
+    t4 = <Box flexDirection="column" marginY={1}><Box borderStyle="single" borderColor="cyan_FOR_SUBAGENTS_ONLY" borderText={{ content: borderTitle, position: 'top', align: 'start', offset: 1 }} flexDirection="column" paddingX={1} paddingY={0}>{t2}{t3}</Box></Box>;
+    $[7] = borderTitle;
     $[8] = t2;
-    $[9] = t3;
-    $[10] = t4;
+    $[0] = t3;
+    $[1] = t4;
   } else {
-    t4 = $[10];
+    t4 = $[1];
   }
   return t4;
 }

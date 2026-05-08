@@ -259,7 +259,7 @@ export function ConsoleOAuthFlow({
           state: 'success'
         });
         void sendNotification({
-          message: 'Claude Code login successful',
+          message: 'Stratagem login successful',
           notificationType: 'auth_success'
         }, terminal);
       }

@@ -113,7 +113,7 @@ export function MCPToolDetailView(t0) {
   }
   let t9;
   if ($[17] !== isOpenWorld) {
-    t9 = isOpenWorld && <Text dimColor={true}> [open-world]</Text>;
+    t9 = isOpenWorld && <Text color="gray"> [open-world]</Text>;
     $[17] = isOpenWorld;
     $[18] = t9;
   } else {
@@ -140,7 +140,7 @@ export function MCPToolDetailView(t0) {
   }
   let t12;
   if ($[25] !== toolName) {
-    t12 = <Box>{t11}<Text dimColor={true}>{toolName}</Text></Box>;
+    t12 = <Box>{t11}<Text color="gray">{toolName}</Text></Box>;
     $[25] = toolName;
     $[26] = t12;
   } else {
@@ -155,7 +155,7 @@ export function MCPToolDetailView(t0) {
   }
   let t14;
   if ($[28] !== tool.name) {
-    t14 = <Box>{t13}<Text dimColor={true}>{tool.name}</Text></Box>;
+    t14 = <Box>{t13}<Text color="gray">{tool.name}</Text></Box>;
     $[28] = tool.name;
     $[29] = t14;
   } else {
@@ -175,7 +175,7 @@ export function MCPToolDetailView(t0) {
           const [key, value] = t17;
           const required = tool.inputJSONSchema?.required as string[] | undefined;
           const isRequired = required?.includes(key);
-          return <Text key={key}>• {key}{isRequired && <Text dimColor={true}> (required)</Text>}:{" "}<Text dimColor={true}>{typeof value === "object" && value && "type" in value ? String(value.type) : "unknown"}</Text>{typeof value === "object" && value && "description" in value && <Text dimColor={true}> - {String(value.description)}</Text>}</Text>;
+          return <Text key={key}>• {key}{isRequired && <Text color="gray"> (required)</Text>}:{" "}<Text color="gray">{typeof value === "object" && value && "type" in value ? String(value.type) : "unknown"}</Text>{typeof value === "object" && value && "description" in value && <Text color="gray"> - {String(value.description)}</Text>}</Text>;
         })}</Box></Box>;
     $[32] = tool.inputJSONSchema;
     $[33] = t16;

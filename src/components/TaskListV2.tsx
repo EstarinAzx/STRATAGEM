@@ -187,12 +187,12 @@ export function TaskListV2({
   }
   const content = <>
       {visibleTasks.map(task_0 => <TaskItem key={task_0.id} task={task_0} ownerColor={task_0.owner ? teammateColors[task_0.owner] : undefined} openBlockers={task_0.blockedBy.filter(id_3 => unresolvedTaskIds.has(id_3))} activity={task_0.owner ? teammateActivity[task_0.owner] : undefined} ownerActive={task_0.owner ? activeTeammates.has(task_0.owner) : false} columns={columns} />)}
-      {maxDisplay > 0 && hiddenSummary && <FullWidthRow><Text dimColor>{hiddenSummary}</Text></FullWidthRow>}
+      {maxDisplay > 0 && hiddenSummary && <FullWidthRow><Text color="gray">{hiddenSummary}</Text></FullWidthRow>}
     </>;
   if (isStandalone) {
     return <Box flexDirection="column" marginTop={1} marginLeft={2} width="100%">
         <Box width="100%">
-          <Text dimColor>
+          <Text color="gray">
             <Text bold>{tasks.length}</Text>
             {' tasks ('}
             <Text bold>{completedCount}</Text>
@@ -311,7 +311,7 @@ function TaskItem(t0) {
   const t6 = isCompleted || isBlocked;
   let t7;
   if ($[14] !== displaySubject || $[15] !== isCompleted || $[16] !== isInProgress || $[17] !== t6) {
-    t7 = <Text bold={isInProgress} strikethrough={isCompleted} dimColor={t6}>{displaySubject}</Text>;
+    t7 = <Text bold={isInProgress} strikethrough={isCompleted} color={t6 ? "gray" : undefined}>{displaySubject}</Text>;
     $[14] = displaySubject;
     $[15] = isCompleted;
     $[16] = isInProgress;
@@ -322,7 +322,7 @@ function TaskItem(t0) {
   }
   let t8;
   if ($[19] !== ownerColor || $[20] !== showOwner || $[21] !== task.owner) {
-    t8 = showOwner && <Text dimColor={true}>{" ("}{ownerColor ? <ThemedText color={ownerColor}>@{task.owner}</ThemedText> : `@${task.owner}`}{")"}</Text>;
+    t8 = showOwner && <Text color="gray">{" ("}{ownerColor ? <ThemedText color={ownerColor}>@{task.owner}</ThemedText> : `@${task.owner}`}{")"}</Text>;
     $[19] = ownerColor;
     $[20] = showOwner;
     $[21] = task.owner;
@@ -332,7 +332,7 @@ function TaskItem(t0) {
   }
   let t9;
   if ($[23] !== isBlocked || $[24] !== openBlockers) {
-    t9 = isBlocked && <Text dimColor={true}>{" "}{figures.pointerSmall} blocked by{" "}{[...openBlockers].sort(_temp).map(_temp2).join(", ")}</Text>;
+    t9 = isBlocked && <Text color="gray">{" "}{figures.pointerSmall} blocked by{" "}{[...openBlockers].sort(_temp).map(_temp2).join(", ")}</Text>;
     $[23] = isBlocked;
     $[24] = openBlockers;
     $[25] = t9;
@@ -352,7 +352,7 @@ function TaskItem(t0) {
   }
   let t11;
   if ($[31] !== displayActivity || $[32] !== showActivity) {
-    t11 = showActivity && displayActivity && <FullWidthRow><Text dimColor={true}>{"  "}{displayActivity}{figures.ellipsis}</Text></FullWidthRow>;
+    t11 = showActivity && displayActivity && <FullWidthRow><Text color="gray">{"  "}{displayActivity}{figures.ellipsis}</Text></FullWidthRow>;
     $[31] = displayActivity;
     $[32] = showActivity;
     $[33] = t11;
