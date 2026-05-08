@@ -1,6 +1,6 @@
 # XETH--7 / STRATAGEM X7 — Project Context
 
-> **Last updated**: 2026-05-08 — v0.3.61
+> **Last updated**: 2026-05-08 — v0.3.62
 
 ---
 
@@ -11,7 +11,7 @@
 | **Path** | `D:\Mods\xethryon\new agent\XETH--7` |
 | **Branch** | `xeth-7-dev` (all work goes here — never `main`) |
 | **NPM package** | `stratagem-x7` on npmjs.com |
-| **Current version** | `0.3.61` |
+| **Current version** | `0.3.62` |
 | **Global install** | `npm i -g stratagem-x7` |
 | **CLI commands** | `stx7`, `openclaude`, `xeth7` |
 | **Build** | `bun run build` → `dist/cli.mjs` |
@@ -42,7 +42,7 @@ XETH--7/
 ├── dist/                   # Build output (cli.mjs — single bundle)
 ├── scripts/                # Build scripts (build.ts)
 ├── src/                    # All source code
-├── package.json            # v0.3.61, name: stratagem-x7
+├── package.json            # v0.3.62, name: stratagem-x7
 ├── XETH7_CONTEXT.md        # This file
 └── STRATAGEM.md            # Project-level instructions for the agent
 ```
@@ -307,13 +307,14 @@ Each project gets a `.memory/` directory (hidden dotfolder) created automaticall
 
 ---
 
-## 6. Recent Commit History (v0.3.27 → v0.3.61)
+## 6. Recent Commit History (v0.3.27 → v0.3.62)
 
 Per-version notes for v0.3.46 onward live in [`changelog/`](changelog/README.md).
 
 | Version | Commit | Change |
 |---|---|---|
-| **0.3.61** | _pending_ | feat: restructure first-run login — provider list at top, Anthropic OAuth/API nested under Anthropic |
+| **0.3.62** | _pending_ | feat: first-run mounts directly into ProviderManager preset list — Anthropic OAuth + API key are sibling presets |
+| **0.3.61** | `7f612a5` | feat: restructure first-run login — provider list at top, Anthropic OAuth/API nested under Anthropic |
 | **0.3.60** | `3412dde` | fix: production-readiness pass — broken import paths, BypassPermissions rebrand, stale test fixes |
 | **0.3.59** | `77e4df1` | feat: breach titles for missed Pane callers (FuzzyPicker, /effort, /mobile, /passes, iTerm2 setup) |
 | **0.3.58** | `edae18e` | feat: breach-edge turn delimiters for transcript messages |

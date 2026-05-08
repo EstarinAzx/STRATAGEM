@@ -31,14 +31,8 @@ type Props = {
   initialStatus?: OAuthStatus;
 };
 type OAuthStatus = {
-  state: 'idle';
-} // Initial state, waiting to select provider
-| {
-  state: 'anthropic_auth';
-} // Anthropic provider selected, picking between subscription OAuth and Console API key
-| {
   state: 'platform_setup';
-} // Show third-party provider setup flow
+} // Initial state for first-run: ProviderManager preset list (Anthropic OAuth/API key + all third-party providers)
 | {
   state: 'platform_setup_complete';
   message: string;
@@ -92,7 +86,7 @@ export function ConsoleOAuthFlow({
       };
     }
     return {
-      state: 'idle'
+      state: 'platform_setup'
     };
   });
   const [pastedCode, setPastedCode] = useState('');
@@ -384,111 +378,20 @@ function OAuthStatusMessage({
   setLoginWithClaudeAi,
 }: OAuthStatusMessageProps) {
   switch (oauthStatus.state) {
-    case 'idle': {
-      const promptText =
-        startingMessage ||
-        'Connect STRATAGEM X7 to your provider. Anthropic supports Claude Pro/Max subscription OAuth or Console API key; other providers use API keys.'
-
-      const providerOptions = [
-        {
-          label: (
-            <Text>
-              Anthropic ·{' '}
-              <Text dimColor>Claude Pro/Max subscription or Console API key</Text>
-              {'\n'}
-            </Text>
-          ),
-          value: 'anthropic' as const,
-        },
-        {
-          label: (
-            <Text>
-              Other provider ·{' '}
-              <Text dimColor>OpenAI, Gemini, Bedrock, Ollama, Codex, and more</Text>
-              {'\n'}
-            </Text>
-          ),
-          value: 'platform' as const,
-        },
-      ]
-
-      return (
-        <Box flexDirection="column" gap={1} marginTop={1}>
-          <Text bold>{promptText}</Text>
-          <Text>Select provider:</Text>
-          <Box>
-            <Select
-              options={providerOptions}
-              onChange={value => {
-                if (value === 'platform') {
-                  logEvent('tengu_oauth_platform_selected', {})
-                  setOAuthStatus({ state: 'platform_setup' })
-                  return
-                }
-                // Anthropic: drill into OAuth-vs-API-key sub-choice
-                setOAuthStatus({ state: 'anthropic_auth' })
-              }}
-            />
-          </Box>
-        </Box>
-      )
-    }
-
-    case 'anthropic_auth': {
-      const anthropicAuthOptions = [
-        {
-          label: (
-            <Text>
-              Claude account with subscription ·{' '}
-              <Text dimColor>Pro, Max, Team, or Enterprise</Text>
-              {'\n'}
-            </Text>
-          ),
-          value: 'claudeai' as const,
-        },
-        {
-          label: (
-            <Text>
-              Anthropic Console account ·{' '}
-              <Text dimColor>API usage billing</Text>
-              {'\n'}
-            </Text>
-          ),
-          value: 'console' as const,
-        },
-      ]
-
-      return (
-        <Box flexDirection="column" gap={1} marginTop={1}>
-          <Text bold>Anthropic authentication</Text>
-          <Text>Select auth method:</Text>
-          <Box>
-            <Select
-              options={anthropicAuthOptions}
-              onChange={value => {
-                setOAuthStatus({ state: 'ready_to_start' })
-                if (value === 'claudeai') {
-                  logEvent('tengu_oauth_claudeai_selected', {})
-                  setLoginWithClaudeAi(true)
-                } else {
-                  logEvent('tengu_oauth_console_selected', {})
-                  setLoginWithClaudeAi(false)
-                }
-              }}
-              onCancel={() => setOAuthStatus({ state: 'idle' })}
-            />
-          </Box>
-        </Box>
-      )
-    }
-
     case 'platform_setup':
       return (
         <ProviderManager
           mode="first-run"
           onDone={result => {
+            if (result?.action === 'delegate-anthropic-oauth') {
+              logEvent('tengu_oauth_claudeai_selected', {})
+              setLoginWithClaudeAi(true)
+              setOAuthStatus({ state: 'ready_to_start' })
+              return
+            }
             if (!result || result.action !== 'saved' || !result.message) {
-              setOAuthStatus({ state: 'idle' })
+              // cancelled / skipped — stay on this screen so user can retry
+              setOAuthStatus({ state: 'platform_setup' })
               return
             }
 

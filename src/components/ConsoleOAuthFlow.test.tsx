@@ -96,38 +96,13 @@ async function renderFrame(node: React.ReactNode): Promise<string> {
   return stripAnsi(extractLastFrame(getOutput()))
 }
 
-test('provider picker shows Anthropic and Other-provider options', async () => {
+test('first-run mounts directly into the ProviderManager preset list', async () => {
   const output = await renderFrame(<ConsoleOAuthFlow onDone={() => {}} />)
 
-  expect(output).toContain('Select provider:')
-  expect(output).toContain('Anthropic')
-  expect(output).toContain('Other provider')
-})
-
-test('Anthropic auth sub-step shows subscription and Console options', async () => {
-  const output = await renderFrame(
-    <ConsoleOAuthFlow
-      initialStatus={{ state: 'anthropic_auth' }}
-      onDone={() => {}}
-    />,
-  )
-
-  expect(output).toContain('Anthropic authentication')
-  expect(output).toContain('Claude account with subscription')
-  expect(output).toContain('Anthropic Console account')
-})
-
-test('third-party provider branch opens the first-run provider manager', async () => {
-  const output = await renderFrame(
-    <ConsoleOAuthFlow
-      initialStatus={{ state: 'platform_setup' }}
-      onDone={() => {}}
-    />,
-  )
-
   expect(output).toContain('Initialize uplink')
-  expect(output).toContain('Anthropic')
+  expect(output).toContain('Anthropic (subscription)')
+  expect(output).toContain('Anthropic (API key)')
   expect(output).toContain('OpenAI')
   expect(output).toContain('Ollama')
-  expect(output).toContain('LM Studio')
+  // LM Studio + later presets scroll off the 13-row visible window
 })

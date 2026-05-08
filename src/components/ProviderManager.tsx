@@ -70,7 +70,7 @@ import { useCodexOAuthFlow } from './useCodexOAuthFlow.js'
 import { useSetAppState } from '../state/AppState.js'
 
 export type ProviderManagerResult = {
-  action: 'saved' | 'cancelled'
+  action: 'saved' | 'cancelled' | 'delegate-anthropic-oauth'
   activeProfileId?: string
   message?: string
 }
@@ -1167,9 +1167,14 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
     const canUseCodexOAuth = !isBareMode()
     const options = [
       {
+        value: 'anthropic-oauth',
+        label: 'Anthropic (subscription)',
+        description: 'Sign in with Claude Pro/Max — OAuth flow',
+      },
+      {
         value: 'anthropic',
-        label: 'Anthropic',
-        description: 'Native Anthropic uplink (x-api-key auth)',
+        label: 'Anthropic (API key)',
+        description: 'Anthropic Console API key (x-api-key auth)',
       },
       {
         value: 'ollama',
@@ -1344,6 +1349,10 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
             }
             if (value === 'codex-oauth') {
               setScreen('codex-oauth')
+              return
+            }
+            if (value === 'anthropic-oauth') {
+              onDone({ action: 'delegate-anthropic-oauth' })
               return
             }
             startCreateFromPreset(value as ProviderPreset)
