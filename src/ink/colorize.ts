@@ -203,7 +203,18 @@ export function applyTextStyles(text: string, styles: TextStyles): string {
   }
 
   if (styles.dim) {
-    result = chalk.dim(result)
+    // chalk.gray (RGB-128) instead of chalk.dim (SGR-2) when no explicit color
+    // is set. SGR-2 renders unpredictably across terminals — most chars become
+    // invisible while stochastic ones survive frame transitions, leaving stray
+    // characters bleeding into the next frame. RGB-128 is deterministic.
+    // When an explicit color IS set below, fall back to chalk.dim since gray
+    // would be overwritten by the color application — the dim attribute then
+    // acts as a multiplier on the colored text in most terminals.
+    if (styles.color) {
+      result = chalk.dim(result)
+    } else {
+      result = chalk.gray(result)
+    }
   }
 
   if (styles.color) {

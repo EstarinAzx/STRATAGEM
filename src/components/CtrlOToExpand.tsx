@@ -46,5 +46,7 @@ export function CtrlOToExpand() {
 }
 export function ctrlOToExpand(): string {
   const shortcut = getShortcutDisplay('app:toggleTranscript', 'Global', 'ctrl+o');
-  return chalk.dim(`(${shortcut} to expand)`);
+  // chalk.gray (RGB-128) — chalk.dim (SGR-2) renders stochastically across
+  // terminals, leaving stray chars when the transcript repaints.
+  return chalk.gray(`(${shortcut} to expand)`);
 }

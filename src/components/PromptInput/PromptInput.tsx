@@ -2438,9 +2438,9 @@ function buildBorderText(showFastIcon: boolean, showFastIconHint: boolean, fastM
     align: 'start',
     offset: 1
   };
-  const fastSeg = showFastIconHint ? `${getFastIconString(true, fastModeCooldown)} ${chalk.dim('/fast')}` : getFastIconString(true, fastModeCooldown);
+  const fastSeg = showFastIconHint ? `${getFastIconString(true, fastModeCooldown)} ${chalk.gray('/fast')}` : getFastIconString(true, fastModeCooldown);
   return {
-    content: `${baseSeg}${chalk.dim('//')} ${fastSeg} `,
+    content: `${baseSeg}${chalk.gray('//')} ${fastSeg} `,
     position: 'top',
     align: 'start',
     offset: 1
