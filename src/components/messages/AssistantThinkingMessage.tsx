@@ -57,13 +57,6 @@ export function AssistantThinkingMessage(t0) {
     return t6;
   }
   const t4 = addMargin ? 1 : 0;
-  let t5;
-  if ($[3] === Symbol.for("react.memo_cache_sentinel")) {
-    t5 = <Text dimColor={true} italic={true}>{"TRACE // COGNITION"}…</Text>;
-    $[3] = t5;
-  } else {
-    t5 = $[3];
-  }
   let t6;
   if ($[4] !== thinking) {
     t6 = <Box paddingLeft={2}><Markdown dimColor={true}>{thinking}</Markdown></Box>;
@@ -74,7 +67,7 @@ export function AssistantThinkingMessage(t0) {
   }
   let t7;
   if ($[6] !== t4 || $[7] !== t6) {
-    t7 = <Box flexDirection="column" gap={1} marginTop={t4} width="100%" borderStyle="single" borderColor="dim" borderLeft={true} borderTop={false} borderRight={false} borderBottom={false} paddingLeft={1}>{t5}{t6}</Box>;
+    t7 = <Box flexDirection="column" marginTop={t4} width="100%" borderStyle="single" borderColor="dim" borderLeft={true} borderTop={true} borderRight={false} borderBottom={false} paddingLeft={1} borderText={{ content: ' TRACE // COGNITION ', position: 'top', align: 'start', offset: 1 }}>{t6}</Box>;
     $[6] = t4;
     $[7] = t6;
     $[8] = t7;

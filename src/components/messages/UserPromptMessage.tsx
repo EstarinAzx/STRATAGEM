@@ -2,7 +2,7 @@ import { feature } from 'bun:bundle';
 import type { TextBlockParam } from '@anthropic-ai/sdk/resources/index.mjs';
 import React, { useContext, useMemo } from 'react';
 import { getKairosActive, getUserMsgOptIn } from '../../bootstrap/state.js';
-import { Box, Text } from '../../ink.js';
+import { Box } from '../../ink.js';
 import { getFeatureValue_CACHED_MAY_BE_STALE } from '../../services/analytics/growthbook.js';
 import { useAppState } from '../../state/AppState.js';
 import { isEnvTruthy } from '../../utils/envUtils.js';
@@ -73,8 +73,8 @@ export function UserPromptMessage({
     logError(new Error('No content found in user prompt message'));
     return null;
   }
-  return <Box flexDirection="column" marginTop={addMargin ? 1 : 0} backgroundColor={isSelected ? 'messageActionsBackground' : useBriefLayout ? undefined : 'userMessageBackground'} paddingLeft={useBriefLayout ? 0 : 1} paddingRight={useBriefLayout ? 0 : 1} borderStyle={useBriefLayout ? undefined : 'single'} borderColor={useBriefLayout ? undefined : 'promptBorder'} borderLeft={useBriefLayout ? false : true} borderTop={false} borderRight={false} borderBottom={false}>
-      {!useBriefLayout && <Box marginBottom={1}><Text color="promptBorder" italic={true}>{'USER'}</Text></Box>}
+  const borderText = useBriefLayout ? undefined : { content: ' USER ', position: 'top' as const, align: 'start' as const, offset: 1 };
+  return <Box flexDirection="column" marginTop={addMargin ? 1 : 0} backgroundColor={isSelected ? 'messageActionsBackground' : useBriefLayout ? undefined : 'userMessageBackground'} paddingLeft={useBriefLayout ? 0 : 1} paddingRight={useBriefLayout ? 0 : 1} borderStyle={useBriefLayout ? undefined : 'single'} borderColor={useBriefLayout ? undefined : 'promptBorder'} borderLeft={useBriefLayout ? false : true} borderTop={useBriefLayout ? false : true} borderRight={false} borderBottom={false} borderText={borderText}>
       <HighlightedThinkingText text={displayText} useBriefLayout={useBriefLayout} timestamp={useBriefLayout ? timestamp : undefined} />
     </Box>;
 }
