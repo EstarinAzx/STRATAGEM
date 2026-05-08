@@ -75,6 +75,10 @@ import {
   addAntigravityAccount,
 } from '../services/oauth/antigravity.js'
 import { getAntigravityRotation } from '../services/api/antigravityRotation.js'
+import {
+  ANTIGRAVITY_DEFAULT_MODEL,
+  ANTIGRAVITY_MODEL_OPTIONS,
+} from '../providers/antigravityModels.js'
 import { openBrowser } from '../utils/browser.js'
 
 export type ProviderManagerResult = {
@@ -94,6 +98,7 @@ type Screen =
   | 'select-ollama-model'
   | 'codex-oauth'
   | 'antigravity-oauth'
+  | 'antigravity-edit-model'
   | 'form'
   | 'select-active'
   | 'select-edit'
@@ -463,44 +468,6 @@ function CodexOAuthSetup({
 }
 
 /**
- * Antigravity model catalog. The `id` is the upstream model name sent
- * to the Code Assist proxy in the envelope's `model` field — pick one
- * Antigravity actually serves (`claude-opus-4-6` plain, for example,
- * does NOT exist on Antigravity; only `claude-opus-4-6-thinking` does).
- */
-const ANTIGRAVITY_MODEL_OPTIONS: Array<{
-  id: string
-  label: string
-  description: string
-}> = [
-  {
-    id: 'gemini-3-pro-preview',
-    label: 'Gemini 3 Pro (preview)',
-    description: "Google's flagship — best for long context + reasoning",
-  },
-  {
-    id: 'gemini-3.1-pro-preview',
-    label: 'Gemini 3.1 Pro (preview)',
-    description: 'Newer 3.1 Pro variant — same family, fresher snapshot',
-  },
-  {
-    id: 'gemini-3-flash-preview',
-    label: 'Gemini 3 Flash (preview)',
-    description: 'Faster + cheaper than Pro — good for tool-heavy loops',
-  },
-  {
-    id: 'claude-sonnet-4-6',
-    label: 'Claude Sonnet 4.6',
-    description: 'Anthropic Sonnet repackaged through Antigravity',
-  },
-  {
-    id: 'claude-opus-4-6-thinking',
-    label: 'Claude Opus 4.6 (thinking)',
-    description: 'Anthropic Opus with extended thinking — deepest reasoning',
-  },
-]
-
-/**
  * Four-step Antigravity OAuth setup (mirrors Anthropic uplink 1/4 → 4/4):
  *   1. ToS disclosure — hard gate; user must explicitly accept the
  *      gray-area Google ToS warning before OAuth starts.
@@ -663,7 +630,7 @@ function AntigravityOAuthSetup({
           onCancel={() => {
             // Esc on the picker = accept the default. Better UX than
             // orphaning the freshly-linked account.
-            void finishWithModel(status.account, 'gemini-3-pro-preview')
+            void finishWithModel(status.account, ANTIGRAVITY_DEFAULT_MODEL)
           }}
           visibleOptionCount={ANTIGRAVITY_MODEL_OPTIONS.length}
         />
@@ -1167,6 +1134,17 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
       return
     }
 
+    // Antigravity profiles can't be edited as OpenAI-compatible —
+    // baseUrl is fixed (Code Assist proxy) and there's no API key.
+    // Only the model is meaningful, so route to the dedicated picker.
+    if (existing.provider === 'antigravity') {
+      setEditingProfileId(profileId)
+      setDraftProvider('antigravity')
+      setErrorMessage(undefined)
+      setScreen('antigravity-edit-model')
+      return
+    }
+
     const nextDraft = toDraft(existing)
     setEditingProfileId(profileId)
     setDraftProvider(existing.provider ?? 'openai')
@@ -1661,7 +1639,9 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
           Provider type:{' '}
           {draftProvider === 'anthropic'
             ? 'Anthropic native API'
-            : 'OpenAI-compatible API'}
+            : draftProvider === 'antigravity'
+              ? 'Antigravity (Google OAuth → Code Assist proxy)'
+              : 'OpenAI-compatible API'}
         </Text>
         <Text dimColor>
           Step {formStepIndex + 1} of {FORM_STEPS.length}: {currentStep.label}
@@ -1966,6 +1946,64 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
     case 'select-ollama-model':
       content = renderOllamaSelection()
       break
+    case 'antigravity-edit-model': {
+      const editing = profiles.find(p => p.id === editingProfileId)
+      content = !editing ? (
+        <Box flexDirection="column" gap={1}>
+          <Text color="error">Profile not found.</Text>
+        </Box>
+      ) : (
+        <Box flexDirection="column" gap={1}>
+          <Text color="remember" bold>
+            Edit Antigravity model
+          </Text>
+          <Text dimColor>
+            OAuth account and Code Assist endpoint are fixed for this
+            profile. Only the model is editable. Use /provider → Add to
+            link a different Google account.
+          </Text>
+          <Text dimColor>Currently: {editing.model || '(none)'}</Text>
+          <Select
+            options={ANTIGRAVITY_MODEL_OPTIONS.map(m => ({
+              value: m.id,
+              label: m.label,
+              description: m.description,
+            }))}
+            onChange={value => {
+              const saved = updateProviderProfile(editing.id, {
+                provider: 'antigravity',
+                name: editing.name,
+                baseUrl: editing.baseUrl,
+                model: value,
+                apiKey: '',
+              })
+              if (!saved) {
+                setErrorMessage('Could not save Antigravity profile.')
+                returnToMenu()
+                return
+              }
+              if (activeProfileId === saved.id) {
+                applyProviderProfileToProcessEnv(saved)
+                setAppState(prev => ({
+                  ...prev,
+                  mainLoopModel: getPrimaryModel(saved.model),
+                }))
+              }
+              refreshProfiles()
+              setStatusMessage(`Antigravity model set to ${value}`)
+              setEditingProfileId(null)
+              returnToMenu()
+            }}
+            onCancel={() => {
+              setEditingProfileId(null)
+              returnToMenu()
+            }}
+            visibleOptionCount={ANTIGRAVITY_MODEL_OPTIONS.length}
+          />
+        </Box>
+      )
+      break
+    }
     case 'antigravity-oauth':
       content = (
         <AntigravityOAuthSetup

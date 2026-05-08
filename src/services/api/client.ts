@@ -104,6 +104,25 @@ export async function getAnthropicClient({
   source?: string
   providerOverride?: { model: string; baseURL: string; apiKey: string }
 }): Promise<Anthropic> {
+  // Defensive env alignment: if the user's active provider profile is
+  // 'antigravity' but CLAUDE_CODE_USE_ANTIGRAVITY isn't set, apply now
+  // before any branch-on-env decisions below. Covers the startup race
+  // where the first request fires before applyActiveProviderProfileFromConfig
+  // has run, which previously surfaced as "Could not resolve authentication
+  // method" from the bare Anthropic SDK constructor.
+  if (!isEnvTruthy(process.env.CLAUDE_CODE_USE_ANTIGRAVITY)) {
+    try {
+      const { getActiveProviderProfile, applyProviderProfileToProcessEnv } =
+        await import('../../providers/providerProfiles.js')
+      const activeProfile = getActiveProviderProfile()
+      if (activeProfile?.provider === 'antigravity') {
+        applyProviderProfileToProcessEnv(activeProfile)
+      }
+    } catch {
+      // Config access failed — fall through; the call below will surface
+      // a clearer error than re-raising here.
+    }
+  }
   const containerId = process.env.CLAUDE_CODE_CONTAINER_ID
   const remoteSessionId = process.env.CLAUDE_CODE_REMOTE_SESSION_ID
   const clientApp = process.env.CLAUDE_AGENT_SDK_CLIENT_APP

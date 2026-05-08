@@ -3,6 +3,8 @@ import chalk from 'chalk';
 import * as React from 'react';
 import type { CommandResultDisplay } from '../../commands.js';
 import { ModelPicker } from '../../components/ModelPicker.js';
+import { AntigravityModelPicker } from '../../components/AntigravityModelPicker.js';
+import { getActiveProviderProfile } from '../../providers/providerProfiles.js';
 import { COMMON_HELP_ARGS, COMMON_INFO_ARGS } from '../../constants/xml.js';
 import { fetchBootstrapData } from '../../services/api/bootstrap.js';
 import { type AnalyticsMetadata_I_VERIFIED_THIS_IS_NOT_CODE_OR_FILEPATHS, logEvent } from '../../services/analytics/index.js';
@@ -323,6 +325,12 @@ export const call: LocalJSXCommandCall = async (onDone, _context, args) => {
   }
   if (getAdditionalModelOptionsCacheScope()?.startsWith('openai:')) {
     void refreshOpenAIModelOptionsCache();
+  }
+  // When the active uplink is Antigravity, the default ModelPicker's
+  // Anthropic-shaped catalog is misleading — the Code Assist proxy only
+  // serves a small fixed set. Render the antigravity-specific picker.
+  if (getActiveProviderProfile()?.provider === 'antigravity') {
+    return <AntigravityModelPicker onDone={onDone} />;
   }
   return <ModelPickerWrapper onDone={onDone} />;
 };
