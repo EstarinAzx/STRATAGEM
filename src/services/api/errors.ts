@@ -43,6 +43,7 @@ function isAnthropicAuthFlow(): boolean {
   try {
     const profile = getActiveProviderProfile()
     if (profile?.provider === 'openai') return false
+    if (profile?.provider === 'antigravity') return false
     if (profile?.provider === 'anthropic') return true
   } catch {
     // Config access failed — fall through to env detection.

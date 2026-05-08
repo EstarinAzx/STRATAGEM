@@ -174,6 +174,16 @@ export async function getAnthropicClient({
       providerOverride,
     }) as unknown as Anthropic
   }
+  if (isEnvTruthy(process.env.CLAUDE_CODE_USE_ANTIGRAVITY)) {
+    const { createAntigravityShimClient } = await import(
+      './antigravityShim.js'
+    )
+    return createAntigravityShimClient({
+      defaultHeaders,
+      maxRetries,
+      timeout: parseInt(process.env.API_TIMEOUT_MS || String(600 * 1000), 10),
+    }) as unknown as Anthropic
+  }
   if (
     isEnvTruthy(process.env.CLAUDE_CODE_USE_OPENAI) ||
     isEnvTruthy(process.env.CLAUDE_CODE_USE_GITHUB) ||

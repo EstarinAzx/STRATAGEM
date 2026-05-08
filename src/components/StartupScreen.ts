@@ -159,6 +159,16 @@ function detectProvider(): { name: string; model: string; baseUrl: string; isLoc
   // applied yet). This covers the race where the startup screen prints
   // before applyActiveProviderProfileFromConfig() runs.
   const activeProfile = getActiveProviderProfile()
+  if (activeProfile?.provider === 'antigravity') {
+    const baseUrl = activeProfile.baseUrl || 'https://cloudcode-pa.googleapis.com'
+    const rawModel = activeProfile.model?.split(',')[0]?.trim() || 'gemini-3-pro-preview'
+    return {
+      name: activeProfile.name || 'Antigravity',
+      model: rawModel,
+      baseUrl,
+      isLocal: false,
+    }
+  }
   if (activeProfile && activeProfile.provider !== 'anthropic') {
     const baseUrl = activeProfile.baseUrl || 'https://api.openai.com/v1'
     const isLocal = isLocalProviderUrl(baseUrl)

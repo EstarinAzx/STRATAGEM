@@ -15,8 +15,15 @@ export type APIProvider =
   | 'minimax'
   | 'mistral'
   | 'opencode'
+  | 'antigravity'
 
 export function getAPIProvider(): APIProvider {
+  // Antigravity routes through Google's Code Assist proxy — distinct
+  // wire format (Gemini-native), distinct auth (multi-account OAuth pool),
+  // distinct shim. Check before the OpenAI-compat flags.
+  if (isEnvTruthy(process.env.CLAUDE_CODE_USE_ANTIGRAVITY)) {
+    return 'antigravity'
+  }
   if (isEnvTruthy(process.env.NVIDIA_NIM)) {
     return 'nvidia-nim'
   }

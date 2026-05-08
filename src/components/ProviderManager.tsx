@@ -68,6 +68,13 @@ import { Pane } from './design-system/Pane.js'
 import TextInput from './TextInput.js'
 import { useCodexOAuthFlow } from './useCodexOAuthFlow.js'
 import { useSetAppState } from '../state/AppState.js'
+import {
+  type AntigravityAccount,
+  ANTIGRAVITY_TOS_DISCLOSURE,
+  addAntigravityAccount,
+} from '../services/oauth/antigravity.js'
+import { getAntigravityRotation } from '../services/api/antigravityRotation.js'
+import { openBrowser } from '../utils/browser.js'
 
 export type ProviderManagerResult = {
   action: 'saved' | 'cancelled' | 'delegate-anthropic-oauth'
@@ -85,6 +92,7 @@ type Screen =
   | 'select-preset'
   | 'select-ollama-model'
   | 'codex-oauth'
+  | 'antigravity-oauth'
   | 'form'
   | 'select-active'
   | 'select-edit'
@@ -447,6 +455,175 @@ function CodexOAuthSetup({
         </>
       ) : (
         <Text dimColor>Opening your browser...</Text>
+      )}
+      <Text dimColor>Press Esc to cancel and go back.</Text>
+    </Box>
+  )
+}
+
+/**
+ * Three-step Antigravity OAuth setup:
+ *   1. ToS disclosure — user must explicitly accept the gray-area Google
+ *      ToS warning. This is a hard gate; the OAuth flow will not start
+ *      until the user picks "I accept the risk".
+ *   2. Browser flow — open Google's consent screen, wait for the local
+ *      callback, exchange the code for tokens, discover the Code Assist
+ *      project, persist the account to the multi-account store.
+ *   3. Done — the parent's onConfigured callback is fired with the
+ *      newly-added account so the caller can wire up the provider profile.
+ */
+type AntigravitySetupState =
+  | { state: 'disclosure' }
+  | { state: 'starting' }
+  | { state: 'awaiting'; authUrl: string; browserOpened: boolean }
+  | { state: 'error'; message: string }
+  | { state: 'done'; account: AntigravityAccount }
+
+function AntigravityOAuthSetup({
+  onBack,
+  onConfigured,
+}: {
+  onBack: () => void
+  onConfigured: (account: AntigravityAccount) => void | Promise<void>
+}): React.ReactNode {
+  const [status, setStatus] = React.useState<AntigravitySetupState>({
+    state: 'disclosure',
+  })
+  useKeybinding('confirm:no', onBack)
+
+  const onConfiguredRef = React.useRef(onConfigured)
+  React.useEffect(() => {
+    onConfiguredRef.current = onConfigured
+  }, [onConfigured])
+
+  const startOAuth = React.useCallback(() => {
+    setStatus({ state: 'starting' })
+    void (async () => {
+      try {
+        const account = await addAntigravityAccount({
+          onAuthUrl: async (url: string) => {
+            // Reflect the URL into UI before opening the browser so
+            // the user has a fallback if the browser doesn't open.
+            const opened = await openBrowser(url).then(
+              () => true,
+              () => false,
+            )
+            setStatus({ state: 'awaiting', authUrl: url, browserOpened: opened })
+          },
+        })
+        // Refresh the rotation singleton so the new account is visible
+        // to the request path immediately.
+        getAntigravityRotation().refresh()
+        setStatus({ state: 'done', account })
+        await onConfiguredRef.current(account)
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err)
+        setStatus({ state: 'error', message })
+      }
+    })()
+  }, [])
+
+  if (status.state === 'disclosure') {
+    return (
+      <Box flexDirection="column" gap={1}>
+        <Text color="warning" bold>
+          Antigravity uplink — ToS disclosure
+        </Text>
+        {ANTIGRAVITY_TOS_DISCLOSURE.split('\n').map((line, i) => (
+          <Text key={i} dimColor={!line.includes('STRATAGEM')}>
+            {line || ' '}
+          </Text>
+        ))}
+        <Select
+          options={[
+            {
+              value: 'cancel',
+              label: 'Cancel',
+              description: 'Return to provider presets',
+            },
+            {
+              value: 'accept',
+              label: 'I accept the risk and want to sign in',
+              description:
+                'Open Google sign-in in your browser and link an Antigravity account',
+            },
+          ]}
+          onChange={value => {
+            if (value === 'accept') startOAuth()
+            else onBack()
+          }}
+          onCancel={onBack}
+          visibleOptionCount={2}
+        />
+      </Box>
+    )
+  }
+
+  if (status.state === 'error') {
+    return (
+      <Box flexDirection="column" gap={1}>
+        <Text color="error" bold>
+          Antigravity OAuth failed
+        </Text>
+        <Text>{status.message}</Text>
+        <Text dimColor>Press Enter or Esc to go back.</Text>
+        <Select
+          options={[
+            {
+              value: 'back',
+              label: 'Back',
+              description: 'Return to provider presets',
+            },
+          ]}
+          onChange={onBack}
+          onCancel={onBack}
+          visibleOptionCount={1}
+        />
+      </Box>
+    )
+  }
+
+  if (status.state === 'done') {
+    return (
+      <Box flexDirection="column" gap={1}>
+        <Text color="remember" bold>
+          Antigravity uplink linked
+        </Text>
+        <Text>Account: {status.account.email}</Text>
+        <Text dimColor>Project: {status.account.projectId}</Text>
+        <Text dimColor>Finishing setup...</Text>
+      </Box>
+    )
+  }
+
+  return (
+    <Box flexDirection="column" gap={1}>
+      <Text color="remember" bold>
+        Antigravity OAuth
+      </Text>
+      <Text>
+        Sign in with the Google account whose Antigravity / Cloud Code Assist
+        access you want to multiplex through STRATAGEM X7.
+      </Text>
+      {status.state === 'starting' ? (
+        <Text dimColor>
+          Starting local callback (port 51121) and preparing your browser...
+        </Text>
+      ) : status.browserOpened === false ? (
+        <>
+          <Text color="warning">
+            Browser did not open automatically. Visit this URL to continue:
+          </Text>
+          <Text>{status.authUrl}</Text>
+        </>
+      ) : (
+        <>
+          <Text dimColor>
+            Browser opened. Finish the Google sign-in there and this setup will
+            complete automatically.
+          </Text>
+          <Text>{status.authUrl}</Text>
+        </>
       )}
       <Text dimColor>Press Esc to cancel and go back.</Text>
     </Box>
@@ -1177,6 +1354,12 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
         description: 'Anthropic Console API key (x-api-key auth)',
       },
       {
+        value: 'antigravity',
+        label: 'Antigravity (Google OAuth) — gray area',
+        description:
+          'Multi-account Google login that exposes Gemini 3.x Pro + Claude 4.6 via Code Assist proxy. Violates Google ToS.',
+      },
+      {
         value: 'ollama',
         label: 'Ollama',
         description: 'Local or remote Ollama endpoint',
@@ -1349,6 +1532,10 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
             }
             if (value === 'codex-oauth') {
               setScreen('codex-oauth')
+              return
+            }
+            if (value === 'antigravity') {
+              setScreen('antigravity-oauth')
               return
             }
             if (value === 'anthropic-oauth') {
@@ -1689,6 +1876,71 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
       break
     case 'select-ollama-model':
       content = renderOllamaSelection()
+      break
+    case 'antigravity-oauth':
+      content = (
+        <AntigravityOAuthSetup
+          onBack={() => setScreen('select-preset')}
+          onConfigured={async account => {
+            const presetDefaults = getProviderPresetDefaults('antigravity')
+            const payload: ProviderProfileInput = {
+              provider: 'antigravity',
+              name: presetDefaults.name,
+              baseUrl: presetDefaults.baseUrl,
+              model: presetDefaults.model,
+              apiKey: '',
+            }
+
+            // Replace any existing antigravity profile rather than
+            // creating duplicates — the multi-account store handles
+            // multiple Google logins under a single profile.
+            const existing = profiles.find(p => p.provider === 'antigravity')
+            const saved = existing
+              ? updateProviderProfile(existing.id, payload)
+              : addProviderProfile(payload, { makeActive: true })
+
+            if (!saved) {
+              setErrorMessage(
+                'Antigravity OAuth succeeded, but the provider profile could not be saved.',
+              )
+              returnToMenu()
+              return
+            }
+
+            const active =
+              existing && activeProfileId !== saved.id
+                ? setActiveProviderProfile(saved.id)
+                : saved
+            if (!active) {
+              setErrorMessage(
+                'Antigravity OAuth succeeded, but the provider could not be set as the startup provider.',
+              )
+              returnToMenu()
+              return
+            }
+
+            const settingsOverrideError =
+              clearStartupProviderOverrideFromUserSettings()
+            refreshProfiles()
+            const message = settingsOverrideError
+              ? `Antigravity uplink linked as ${account.email}. Warning: could not clear startup provider override (${settingsOverrideError}).`
+              : `Antigravity uplink linked as ${account.email}.`
+
+            if (mode === 'first-run') {
+              onDone({
+                action: 'saved',
+                activeProfileId: active.id,
+                message,
+              })
+              return
+            }
+
+            setStatusMessage(message)
+            setErrorMessage(undefined)
+            returnToMenu()
+          }}
+        />
+      )
       break
     case 'codex-oauth':
       content = (

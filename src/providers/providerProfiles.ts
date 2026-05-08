@@ -9,6 +9,7 @@ import { getPrimaryModel, parseModelList } from './providerModels.js'
 
 export type ProviderPreset =
   | 'anthropic'
+  | 'antigravity'
   | 'ollama'
   | 'ollama-cloud'
   | 'openai'
@@ -71,12 +72,19 @@ function normalizeBaseUrl(value: string): string {
 function sanitizeProfile(profile: ProviderProfile): ProviderProfile | null {
   const id = trimValue(profile.id)
   const name = trimValue(profile.name)
-  const provider = profile.provider === 'anthropic' ? 'anthropic' : 'openai'
+  const provider: ProviderProfile['provider'] =
+    profile.provider === 'anthropic'
+      ? 'anthropic'
+      : profile.provider === 'antigravity'
+        ? 'antigravity'
+        : 'openai'
   const baseUrl = normalizeBaseUrl(profile.baseUrl)
   const model = trimValue(profile.model)
 
-  // Anthropic profiles allow empty model (subscription tier resolves at runtime)
-  if (!id || !name || !baseUrl || (provider !== 'anthropic' && !model)) {
+  // Anthropic + Antigravity profiles allow empty model: Anthropic resolves
+  // by subscription tier, Antigravity routes via the model picker per turn.
+  const allowsEmptyModel = provider === 'anthropic' || provider === 'antigravity'
+  if (!id || !name || !baseUrl || (!allowsEmptyModel && !model)) {
     return null
   }
 
@@ -143,6 +151,18 @@ export function getProviderPresetDefaults(
         model: process.env.ANTHROPIC_MODEL ?? 'claude-sonnet-4-6',
         apiKey: process.env.ANTHROPIC_API_KEY ?? '',
         requiresApiKey: true,
+      }
+    case 'antigravity':
+      return {
+        provider: 'antigravity',
+        name: 'Antigravity (Google OAuth)',
+        // Informational baseUrl only — the shim hardcodes the Code Assist
+        // endpoint chain (prod → daily → autopush) under the hood.
+        baseUrl: 'https://cloudcode-pa.googleapis.com',
+        // Default to Gemini 3 Pro; overridable via /model after login.
+        model: 'gemini-3-pro-preview',
+        apiKey: '',
+        requiresApiKey: false,
       }
     case 'openai':
       return {
@@ -414,7 +434,8 @@ function hasProviderSelectionFlags(
     processEnv.CLAUDE_CODE_USE_GITHUB !== undefined ||
     processEnv.CLAUDE_CODE_USE_BEDROCK !== undefined ||
     processEnv.CLAUDE_CODE_USE_VERTEX !== undefined ||
-    processEnv.CLAUDE_CODE_USE_FOUNDRY !== undefined
+    processEnv.CLAUDE_CODE_USE_FOUNDRY !== undefined ||
+    processEnv.CLAUDE_CODE_USE_ANTIGRAVITY !== undefined
   )
 }
 
@@ -426,12 +447,26 @@ function hasConflictingProviderFlagsForProfile(
     return hasProviderSelectionFlags(processEnv)
   }
 
+  if (profile.provider === 'antigravity') {
+    // Antigravity is mutually exclusive with all other provider flags.
+    return (
+      processEnv.CLAUDE_CODE_USE_OPENAI !== undefined ||
+      processEnv.CLAUDE_CODE_USE_GEMINI !== undefined ||
+      processEnv.CLAUDE_CODE_USE_MISTRAL !== undefined ||
+      processEnv.CLAUDE_CODE_USE_GITHUB !== undefined ||
+      processEnv.CLAUDE_CODE_USE_BEDROCK !== undefined ||
+      processEnv.CLAUDE_CODE_USE_VERTEX !== undefined ||
+      processEnv.CLAUDE_CODE_USE_FOUNDRY !== undefined
+    )
+  }
+
   return (
     processEnv.CLAUDE_CODE_USE_GEMINI !== undefined ||
     processEnv.CLAUDE_CODE_USE_GITHUB !== undefined ||
     processEnv.CLAUDE_CODE_USE_BEDROCK !== undefined ||
     processEnv.CLAUDE_CODE_USE_VERTEX !== undefined ||
-    processEnv.CLAUDE_CODE_USE_FOUNDRY !== undefined
+    processEnv.CLAUDE_CODE_USE_FOUNDRY !== undefined ||
+    processEnv.CLAUDE_CODE_USE_ANTIGRAVITY !== undefined
   )
 }
 
@@ -469,6 +504,25 @@ function isProcessEnvAlignedWithProfile(
     )
   }
 
+  if (profile.provider === 'antigravity') {
+    // Antigravity carries no API key and the baseUrl is informational —
+    // alignment is purely the USE_ANTIGRAVITY flag plus the model.
+    return (
+      processEnv.CLAUDE_CODE_USE_ANTIGRAVITY !== undefined &&
+      processEnv.CLAUDE_CODE_USE_OPENAI === undefined &&
+      processEnv.CLAUDE_CODE_USE_GEMINI === undefined &&
+      processEnv.CLAUDE_CODE_USE_MISTRAL === undefined &&
+      processEnv.CLAUDE_CODE_USE_GITHUB === undefined &&
+      processEnv.CLAUDE_CODE_USE_BEDROCK === undefined &&
+      processEnv.CLAUDE_CODE_USE_VERTEX === undefined &&
+      processEnv.CLAUDE_CODE_USE_FOUNDRY === undefined &&
+      sameOptionalEnvValue(
+        processEnv.ANTHROPIC_MODEL,
+        getPrimaryModel(profile.model),
+      )
+    )
+  }
+
   return (
     processEnv.CLAUDE_CODE_USE_OPENAI !== undefined &&
     processEnv.CLAUDE_CODE_USE_GEMINI === undefined &&
@@ -477,6 +531,7 @@ function isProcessEnvAlignedWithProfile(
     processEnv.CLAUDE_CODE_USE_BEDROCK === undefined &&
     processEnv.CLAUDE_CODE_USE_VERTEX === undefined &&
     processEnv.CLAUDE_CODE_USE_FOUNDRY === undefined &&
+    processEnv.CLAUDE_CODE_USE_ANTIGRAVITY === undefined &&
     sameOptionalEnvValue(processEnv.OPENAI_BASE_URL, profile.baseUrl) &&
     sameOptionalEnvValue(processEnv.OPENAI_MODEL, getPrimaryModel(profile.model)) &&
     (!includeApiKey ||
@@ -506,6 +561,7 @@ export function clearProviderProfileEnvFromProcessEnv(
   delete processEnv.CLAUDE_CODE_USE_BEDROCK
   delete processEnv.CLAUDE_CODE_USE_VERTEX
   delete processEnv.CLAUDE_CODE_USE_FOUNDRY
+  delete processEnv.CLAUDE_CODE_USE_ANTIGRAVITY
 
   delete processEnv.OPENAI_BASE_URL
   delete processEnv.OPENAI_API_BASE
@@ -544,6 +600,21 @@ export function applyProviderProfileToProcessEnv(profile: ProviderProfile): void
     delete process.env.OPENAI_API_BASE
     delete process.env.OPENAI_MODEL
     delete process.env.OPENAI_API_KEY
+    return
+  }
+
+  if (profile.provider === 'antigravity') {
+    // Antigravity carries no API key (multi-account OAuth pool) and the
+    // baseUrl is only informational — the shim hardcodes the Code Assist
+    // endpoint chain. Setting CLAUDE_CODE_USE_ANTIGRAVITY=1 is what
+    // triggers getAPIProvider() to route to the antigravity shim.
+    process.env.CLAUDE_CODE_USE_ANTIGRAVITY = '1'
+    delete process.env.OPENAI_BASE_URL
+    delete process.env.OPENAI_API_BASE
+    delete process.env.OPENAI_MODEL
+    delete process.env.OPENAI_API_KEY
+    delete process.env.ANTHROPIC_BASE_URL
+    delete process.env.ANTHROPIC_API_KEY
     return
   }
 
