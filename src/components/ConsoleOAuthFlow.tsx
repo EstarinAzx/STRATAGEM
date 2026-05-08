@@ -32,7 +32,10 @@ type Props = {
 };
 type OAuthStatus = {
   state: 'idle';
-} // Initial state, waiting to select login method
+} // Initial state, waiting to select provider
+| {
+  state: 'anthropic_auth';
+} // Anthropic provider selected, picking between subscription OAuth and Console API key
 | {
   state: 'platform_setup';
 } // Show third-party provider setup flow
@@ -384,9 +387,55 @@ function OAuthStatusMessage({
     case 'idle': {
       const promptText =
         startingMessage ||
-        'Claude Code can be used with your Claude subscription or billed based on API usage through your Console account.'
+        'Connect STRATAGEM X7 to your provider. Anthropic supports Claude Pro/Max subscription OAuth or Console API key; other providers use API keys.'
 
-      const loginOptions = [
+      const providerOptions = [
+        {
+          label: (
+            <Text>
+              Anthropic ·{' '}
+              <Text dimColor>Claude Pro/Max subscription or Console API key</Text>
+              {'\n'}
+            </Text>
+          ),
+          value: 'anthropic' as const,
+        },
+        {
+          label: (
+            <Text>
+              Other provider ·{' '}
+              <Text dimColor>OpenAI, Gemini, Bedrock, Ollama, Codex, and more</Text>
+              {'\n'}
+            </Text>
+          ),
+          value: 'platform' as const,
+        },
+      ]
+
+      return (
+        <Box flexDirection="column" gap={1} marginTop={1}>
+          <Text bold>{promptText}</Text>
+          <Text>Select provider:</Text>
+          <Box>
+            <Select
+              options={providerOptions}
+              onChange={value => {
+                if (value === 'platform') {
+                  logEvent('tengu_oauth_platform_selected', {})
+                  setOAuthStatus({ state: 'platform_setup' })
+                  return
+                }
+                // Anthropic: drill into OAuth-vs-API-key sub-choice
+                setOAuthStatus({ state: 'anthropic_auth' })
+              }}
+            />
+          </Box>
+        </Box>
+      )
+    }
+
+    case 'anthropic_auth': {
+      const anthropicAuthOptions = [
         {
           label: (
             <Text>
@@ -407,32 +456,16 @@ function OAuthStatusMessage({
           ),
           value: 'console' as const,
         },
-        {
-          label: (
-            <Text>
-              3rd-party platform ·{' '}
-              <Text dimColor>OpenAI, Gemini, Bedrock, Ollama, and more</Text>
-              {'\n'}
-            </Text>
-          ),
-          value: 'platform' as const,
-        },
       ]
 
       return (
         <Box flexDirection="column" gap={1} marginTop={1}>
-          <Text bold>{promptText}</Text>
-          <Text>Select login method:</Text>
+          <Text bold>Anthropic authentication</Text>
+          <Text>Select auth method:</Text>
           <Box>
             <Select
-              options={loginOptions}
+              options={anthropicAuthOptions}
               onChange={value => {
-                if (value === 'platform') {
-                  logEvent('tengu_oauth_platform_selected', {})
-                  setOAuthStatus({ state: 'platform_setup' })
-                  return
-                }
-
                 setOAuthStatus({ state: 'ready_to_start' })
                 if (value === 'claudeai') {
                   logEvent('tengu_oauth_claudeai_selected', {})
@@ -442,6 +475,7 @@ function OAuthStatusMessage({
                   setLoginWithClaudeAi(false)
                 }
               }}
+              onCancel={() => setOAuthStatus({ state: 'idle' })}
             />
           </Box>
         </Box>
