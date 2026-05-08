@@ -44,9 +44,13 @@ function getCandidateLocalBinaryPaths(localInstallDir: string): string[] {
 }
 
 export function isManagedLocalInstallationPath(execPath: string): boolean {
+  // Normalize Windows backslashes to forward slashes so the substring checks
+  // match regardless of platform (process.argv[1] uses platform-native
+  // separators on Windows).
+  const normalized = execPath.replace(/\\/g, '/')
   return (
-    execPath.includes('/.openclaude/local/node_modules/') ||
-    execPath.includes('/.claude/local/node_modules/')
+    normalized.includes('/.openclaude/local/node_modules/') ||
+    normalized.includes('/.claude/local/node_modules/')
   )
 }
 

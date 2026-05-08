@@ -2,6 +2,7 @@ import { afterEach, expect, mock, test } from 'bun:test'
 import * as fsPromises from 'fs/promises'
 import { homedir } from 'os'
 import { join } from 'path'
+import * as realEnv from './env.ts'
 
 const originalEnv = { ...process.env }
 const originalMacro = (globalThis as Record<string, unknown>).MACRO
@@ -20,25 +21,27 @@ async function importFreshInstaller() {
   return import(`./nativeInstaller/installer.ts?ts=${Date.now()}-${Math.random()}`)
 }
 
-test('install command displays ~/.local/bin/openclaude on non-Windows', async () => {
+test('install command displays ~/.local/bin/stx7 on non-Windows', async () => {
   mock.module('../utils/env.js', () => ({
-    env: { platform: 'darwin' },
+    ...realEnv,
+    env: { ...realEnv.env, platform: 'darwin' },
   }))
 
   const { getInstallationPath } = await importFreshInstallCommand()
 
-  expect(getInstallationPath()).toBe('~/.local/bin/openclaude')
+  expect(getInstallationPath()).toBe('~/.local/bin/stx7')
 })
 
-test('install command displays openclaude.exe path on Windows', async () => {
+test('install command displays stx7.exe path on Windows', async () => {
   mock.module('../utils/env.js', () => ({
-    env: { platform: 'win32' },
+    ...realEnv,
+    env: { ...realEnv.env, platform: 'win32' },
   }))
 
   const { getInstallationPath } = await importFreshInstallCommand()
 
   expect(getInstallationPath()).toBe(
-    join(homedir(), '.local', 'bin', 'openclaude.exe').replace(/\//g, '\\'),
+    join(homedir(), '.local', 'bin', 'stx7.exe').replace(/\//g, '\\'),
   )
 })
 

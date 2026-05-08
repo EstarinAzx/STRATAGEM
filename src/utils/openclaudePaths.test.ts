@@ -25,30 +25,60 @@ afterEach(() => {
 })
 
 describe('OpenClaude paths', () => {
-  test('defaults user config home to ~/.openclaude', async () => {
+  test('falls back to ~/.openclaude when stratagem config does not exist but openclaude does', async () => {
     delete process.env.CLAUDE_CONFIG_DIR
     const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils()
 
     expect(
       resolveClaudeConfigHomeDir({
         homeDir: homedir(),
+        stratagemExists: false,
         openClaudeExists: true,
         legacyClaudeExists: false,
       }),
     ).toBe(join(homedir(), '.openclaude'))
   })
 
-  test('falls back to ~/.claude when legacy config exists and ~/.openclaude does not', async () => {
+  test('falls back to ~/.claude when only legacy config exists', async () => {
     delete process.env.CLAUDE_CONFIG_DIR
     const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils()
 
     expect(
       resolveClaudeConfigHomeDir({
         homeDir: homedir(),
+        stratagemExists: false,
         openClaudeExists: false,
         legacyClaudeExists: true,
       }),
     ).toBe(join(homedir(), '.claude'))
+  })
+
+  test('defaults to ~/.stratagem when no legacy dirs exist', async () => {
+    delete process.env.CLAUDE_CONFIG_DIR
+    const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils()
+
+    expect(
+      resolveClaudeConfigHomeDir({
+        homeDir: homedir(),
+        stratagemExists: false,
+        openClaudeExists: false,
+        legacyClaudeExists: false,
+      }),
+    ).toBe(join(homedir(), '.stratagem'))
+  })
+
+  test('prefers ~/.stratagem when it exists, even if legacy dirs also exist', async () => {
+    delete process.env.CLAUDE_CONFIG_DIR
+    const { resolveClaudeConfigHomeDir } = await importFreshEnvUtils()
+
+    expect(
+      resolveClaudeConfigHomeDir({
+        homeDir: homedir(),
+        stratagemExists: true,
+        openClaudeExists: true,
+        legacyClaudeExists: true,
+      }),
+    ).toBe(join(homedir(), '.stratagem'))
   })
 
   test('uses CLAUDE_CONFIG_DIR override when provided', async () => {
@@ -64,14 +94,16 @@ describe('OpenClaude paths', () => {
     ).toBe('/tmp/custom-openclaude')
   })
 
-  test('project and local settings paths use .openclaude', async () => {
+  test('project and local settings paths use .openclaude (legacy compat)', async () => {
     const { getRelativeSettingsFilePathForSource } = await importFreshSettings()
 
+    // Use path.join to match the platform-specific separator the production
+    // code emits (\\ on Windows, / on POSIX).
     expect(getRelativeSettingsFilePathForSource('projectSettings')).toBe(
-      '.openclaude/settings.json',
+      join('.openclaude', 'settings.json'),
     )
     expect(getRelativeSettingsFilePathForSource('localSettings')).toBe(
-      '.openclaude/settings.local.json',
+      join('.openclaude', 'settings.local.json'),
     )
   })
 
