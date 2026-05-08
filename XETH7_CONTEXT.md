@@ -1,6 +1,6 @@
 # XETH--7 / STRATAGEM X7 — Project Context
 
-> **Last updated**: 2026-05-08 — v0.3.46
+> **Last updated**: 2026-05-08 — v0.3.57
 
 ---
 
@@ -11,7 +11,7 @@
 | **Path** | `D:\Mods\xethryon\new agent\XETH--7` |
 | **Branch** | `xeth-7-dev` (all work goes here — never `main`) |
 | **NPM package** | `stratagem-x7` on npmjs.com |
-| **Current version** | `0.3.46` |
+| **Current version** | `0.3.57` |
 | **Global install** | `npm i -g stratagem-x7` |
 | **CLI commands** | `stx7`, `openclaude`, `xeth7` |
 | **Build** | `bun run build` → `dist/cli.mjs` |
@@ -42,7 +42,7 @@ XETH--7/
 ├── dist/                   # Build output (cli.mjs — single bundle)
 ├── scripts/                # Build scripts (build.ts)
 ├── src/                    # All source code
-├── package.json            # v0.3.46, name: stratagem-x7
+├── package.json            # v0.3.57, name: stratagem-x7
 ├── XETH7_CONTEXT.md        # This file
 └── STRATAGEM.md            # Project-level instructions for the agent
 ```
@@ -307,11 +307,24 @@ Each project gets a `.memory/` directory (hidden dotfolder) created automaticall
 
 ---
 
-## 6. Recent Commit History (v0.3.27 → v0.3.46)
+## 6. Recent Commit History (v0.3.27 → v0.3.57)
+
+Per-version notes for v0.3.46 onward live in [`changelog/`](changelog/README.md).
 
 | Version | Commit | Change |
 |---|---|---|
-| **0.3.46** | _pending_ | feat: add ScheduleWakeup tool — cache-aware self-pacing primitive for /loop dynamic mode |
+| **0.3.57** | `31fe7bc` | feat: per-screen breach titles for all Pane-based slash command surfaces |
+| **0.3.56** | `9b5a075` | feat: breach-HUD redesign for PermissionDialog |
+| **0.3.55** | `7b64ee0` | feat: /whoami slash command + rebrand sweep + small bug cleanup |
+| **0.3.54** | `28a0cfb` | fix: system prompt now lists Opus 4.7 as the latest — model identifies as 4.7 not 4 |
+| **0.3.53** | `dd14f4f` | fix: replace chalk.dim with chalk.gray in input-area rendering — fixes stray-char flicker |
+| **0.3.52** | `a043900` | fix: /logout now scopes to Anthropic creds — preserves Codex/MCP/plugin OAuth |
+| **0.3.51** | `6805e51` | fix: don't suggest /login for non-Anthropic provider auth errors |
+| **0.3.50** | `e0b4df8` | feat: add MemoryPin / MemoryList / MemoryUnpin — first-class auto-memory tools |
+| **0.3.49** | `ce672e1` | fix: revert xhigh from canonical EffortLevel — it's the OpenAI alias for 'max', not a separate level |
+| **0.3.48** | `a38d4c5` | fix: sync appState on subscription-default switch + extract sentinel const |
+| **0.3.47** | `5512d38` | fix: 3P 'Opus 4.7' option now sends opus-4-7 not opus-4-6, plus effort.ts dead-code cleanup |
+| **0.3.46** | `269f6f0` | feat: add ScheduleWakeup tool — purpose-built self-pacing primitive for /loop dynamic mode |
 | **0.3.45** | `935e2aa` | fix: allow empty model for Anthropic Subscription default — bypass sanitizeProfile validation |
 | **0.3.44** | `5822914` | feat: fix startup model display for subscription users, add xhigh effort level, add Subscription default to Anthropic model picker |
 | **0.3.43** | `cba1c31` | feat: enable effort support for Opus 4.7 — effort slider, max effort, default effort |
@@ -351,15 +364,15 @@ Each project gets a `.memory/` directory (hidden dotfolder) created automaticall
 
 | Area | Notes |
 |---|---|
-| Settings/config surfaces | Still upstream-looking |
-| Permission dialogs | Need breach-HUD styling |
+| Settings/config surfaces | Still upstream-looking (some Pane callers got breach titles in 0.3.57; deeper layout work remains) |
+| ~~Permission dialogs~~ | ~~Need breach-HUD styling~~ — done in 0.3.56 |
 | MCP panels | Need visual overhaul |
 | Task detail/dialog views | Generic upstream look |
 | Transcript layout | Further differentiation from upstream |
 | Picker and modal consistency | Some pickers are unstyled |
 | Swarm/team UX | Visual feedback for running teammates |
 | Deeper shell architecture | Move beyond color/chrome into structural originality |
-| Remaining Claude references | Grep for `Claude` in user-facing strings — fix on sight |
+| Remaining Claude references | Grep for `Claude` in user-facing strings — fix on sight (sweep done in 0.3.55, but new ones may surface) |
 
 ---
 
