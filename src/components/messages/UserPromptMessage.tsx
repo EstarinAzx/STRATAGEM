@@ -74,7 +74,9 @@ export function UserPromptMessage({
     return null;
   }
   const borderText = useBriefLayout ? undefined : { content: ' USER ', position: 'top' as const, align: 'start' as const, offset: 1 };
-  return <Box flexDirection="column" marginTop={addMargin ? 1 : 0} backgroundColor={isSelected ? 'messageActionsBackground' : useBriefLayout ? undefined : 'userMessageBackground'} paddingLeft={useBriefLayout ? 0 : 1} paddingRight={useBriefLayout ? 0 : 1} borderStyle={useBriefLayout ? undefined : 'single'} borderColor={useBriefLayout ? undefined : 'promptBorder'} borderText={borderText}>
-      <HighlightedThinkingText text={displayText} useBriefLayout={useBriefLayout} timestamp={useBriefLayout ? timestamp : undefined} />
+  return <Box alignItems="flex-start" flexDirection="row" justifyContent="space-between" marginTop={addMargin ? 1 : 0} width="100%" backgroundColor={isSelected ? 'messageActionsBackground' : undefined}>
+      <Box flexDirection="column" backgroundColor={useBriefLayout ? undefined : 'userMessageBackground'} paddingLeft={useBriefLayout ? 0 : 1} paddingRight={useBriefLayout ? 0 : 1} borderStyle={useBriefLayout ? undefined : 'single'} borderColor={useBriefLayout ? undefined : 'promptBorder'} borderText={borderText}>
+        <HighlightedThinkingText text={displayText} useBriefLayout={useBriefLayout} timestamp={useBriefLayout ? timestamp : undefined} />
+      </Box>
     </Box>;
 }

@@ -1,6 +1,6 @@
 # XETH--7 / STRATAGEM X7 — Project Context
 
-> **Last updated**: 2026-05-08 — v0.3.66
+> **Last updated**: 2026-05-08 — v0.3.67
 
 ---
 
@@ -11,7 +11,7 @@
 | **Path** | `D:\Mods\xethryon\new agent\XETH--7` |
 | **Branch** | `xeth-7-dev` (all work goes here — never `main`) |
 | **NPM package** | `stratagem-x7` on npmjs.com |
-| **Current version** | `0.3.66` |
+| **Current version** | `0.3.67` |
 | **Global install** | `npm i -g stratagem-x7` |
 | **CLI commands** | `stx7`, `openclaude`, `xeth7` |
 | **Build** | `bun run build` → `dist/cli.mjs` |
@@ -307,13 +307,14 @@ Each project gets a `.memory/` directory (hidden dotfolder) created automaticall
 
 ---
 
-## 6. Recent Commit History (v0.3.27 → v0.3.66)
+## 6. Recent Commit History (v0.3.27 → v0.3.67)
 
 Per-version notes for v0.3.46 onward live in [`changelog/`](changelog/README.md).
 
 | Version | Commit | Change |
 |---|---|---|
-| **0.3.66** | _pending_ | fix: ScrollBox marginRight=1 reserves a column for ScrollIndicator — no more overlap with message-box right borders |
+| **0.3.67** | _pending_ | fix: USER message border auto-shrinks to content width — wraps bordered Box in row-flex parent to match STRATAGEM behavior |
+| **0.3.66** | `bac4b27` | fix: ScrollBox marginRight=1 reserves a column for ScrollIndicator — no more overlap with message-box right borders |
 | **0.3.65** | `e9d8409` | fix: openclaude path test sweep + isManagedLocalInstallationPath Windows path normalization |
 | **0.3.64** | `b5e22da` | fix: dim → gray for `<Text dimColor>` and direct chalk.dim render-hot calls — kills stray-char bleed from SGR-2 stochastic rendering |
 | **0.3.63** | `317ec1a` | fix: transcript turn delimiters use full rectangle borders (was L-shaped, read as broken next to BREACH panels) |
