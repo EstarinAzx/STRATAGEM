@@ -1,6 +1,6 @@
 # XETH--7 / STRATAGEM X7 — Project Context
 
-> **Last updated**: 2026-05-08 — v0.3.59
+> **Last updated**: 2026-05-08 — v0.3.60
 
 ---
 
@@ -11,7 +11,7 @@
 | **Path** | `D:\Mods\xethryon\new agent\XETH--7` |
 | **Branch** | `xeth-7-dev` (all work goes here — never `main`) |
 | **NPM package** | `stratagem-x7` on npmjs.com |
-| **Current version** | `0.3.59` |
+| **Current version** | `0.3.60` |
 | **Global install** | `npm i -g stratagem-x7` |
 | **CLI commands** | `stx7`, `openclaude`, `xeth7` |
 | **Build** | `bun run build` → `dist/cli.mjs` |
@@ -42,7 +42,7 @@ XETH--7/
 ├── dist/                   # Build output (cli.mjs — single bundle)
 ├── scripts/                # Build scripts (build.ts)
 ├── src/                    # All source code
-├── package.json            # v0.3.59, name: stratagem-x7
+├── package.json            # v0.3.60, name: stratagem-x7
 ├── XETH7_CONTEXT.md        # This file
 └── STRATAGEM.md            # Project-level instructions for the agent
 ```
@@ -307,13 +307,14 @@ Each project gets a `.memory/` directory (hidden dotfolder) created automaticall
 
 ---
 
-## 6. Recent Commit History (v0.3.27 → v0.3.59)
+## 6. Recent Commit History (v0.3.27 → v0.3.60)
 
 Per-version notes for v0.3.46 onward live in [`changelog/`](changelog/README.md).
 
 | Version | Commit | Change |
 |---|---|---|
-| **0.3.59** | _pending_ | feat: breach titles for missed Pane callers (FuzzyPicker, /effort, /mobile, /passes, iTerm2 setup) |
+| **0.3.60** | _pending_ | fix: production-readiness pass — broken import paths, BypassPermissions rebrand, stale test fixes |
+| **0.3.59** | `77e4df1` | feat: breach titles for missed Pane callers (FuzzyPicker, /effort, /mobile, /passes, iTerm2 setup) |
 | **0.3.58** | `edae18e` | feat: breach-edge turn delimiters for transcript messages |
 | **0.3.57** | `31fe7bc` | feat: per-screen breach titles for all Pane-based slash command surfaces |
 | **0.3.56** | `9b5a075` | feat: breach-HUD redesign for PermissionDialog |
@@ -344,6 +345,7 @@ Per-version notes for v0.3.46 onward live in [`changelog/`](changelog/README.md)
 
 ### Build
 - Full typecheck may surface pre-existing upstream issues — `bun run build` + targeted tests is the practical baseline
+- The Bun bundler hoists ESM declarations into a single bundle, so circular-import TDZ errors don't surface in `bun run build` but DO surface in `bun test` (per-module live evaluation). Memory tools (`src/tools/MemoryTool/`) hit this — the lazy-schema getter is invoked by `buildTool`'s `{...def}` spread, which runs the factory before `memdir/paths.ts` finishes initializing in the test runner. Production binary unaffected.
 - Feature flags via `bun:bundle` are compile-time only — runtime checks use `feature('FLAG')` calls
 
 ### Shell / UI

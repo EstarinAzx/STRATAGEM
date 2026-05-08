@@ -3,7 +3,7 @@ import { afterEach, describe, expect, mock, test } from 'bun:test'
 import type { ProviderProfile } from '../utils/config.js'
 
 async function importFreshProvidersModule() {
-  return import(`./model/providers.ts?ts=${Date.now()}-${Math.random()}`)
+  return import(`../utils/model/providers.ts?ts=${Date.now()}-${Math.random()}`)
 }
 
 const originalEnv = { ...process.env }
@@ -78,7 +78,7 @@ async function importFreshProviderProfileModules() {
     },
   }))
   const nonce = `${Date.now()}-${Math.random()}`
-  const providers = await import(`./model/providers.js?ts=${nonce}`)
+  const providers = await import(`../utils/model/providers.js?ts=${nonce}`)
   const providerProfiles = await import(`./providerProfiles.js?ts=${nonce}`)
 
   return {

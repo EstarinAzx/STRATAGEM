@@ -76,10 +76,10 @@ test('keeps codex alias models on chat completions for local openai-compatible p
   )
 })
 
-test('skips local model cache scope for remote openai-compatible providers', () => {
+test('returns model cache scope for remote openai-compatible providers (model discovery enabled)', () => {
   process.env.CLAUDE_CODE_USE_OPENAI = '1'
   process.env.OPENAI_BASE_URL = 'https://api.openai.com/v1'
   process.env.OPENAI_MODEL = 'gpt-4o'
 
-  expect(getAdditionalModelOptionsCacheScope()).toBeNull()
+  expect(getAdditionalModelOptionsCacheScope()).toBe('openai:https://api.openai.com/v1')
 })

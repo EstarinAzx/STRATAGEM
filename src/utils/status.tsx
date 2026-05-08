@@ -21,7 +21,7 @@ import { getSettingsWithAllErrors } from './settings/allErrors.js';
 import { getEnabledSettingSources, getSettingSourceDisplayNameCapitalized } from './settings/constants.js';
 import { getManagedFileSettingsPresence, getPolicySettingsOrigin, getSettingsForSource } from './settings/settings.js';
 import type { ThemeName } from './theme.js';
-import { redactSecretValueForDisplay } from './providerProfile.js';
+import { redactSecretValueForDisplay } from '../providers/providerProfile.js';
 export type Property = {
   label?: string;
   value: React.ReactNode | Array<string>;
