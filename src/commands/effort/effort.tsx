@@ -6,6 +6,7 @@ import { useAppState, useSetAppState } from '../../state/AppState.js';
 import type { LocalJSXCommandOnDone } from '../../types/command.js';
 import { type EffortValue, getDisplayedEffortLevel, getEffortEnvOverride, getEffortValueDescription, isEffortLevel, isOpenAIEffortLevel, modelUsesOpenAIEffort, toPersistableEffort } from '../../utils/effort.js';
 import { EffortPicker } from '../../components/EffortPicker.js';
+import { Pane } from '../../components/design-system/Pane.js';
 import { updateSettingsForSource } from '../../utils/settings/settings.js';
 const COMMON_HELP_ARGS = ['help', '-h', '--help'];
 type EffortCommandResult = {
@@ -216,5 +217,5 @@ function EffortPickerWrapper({ onDone }: { onDone: LocalJSXCommandOnDone }) {
     onDone('Cancelled');
   }
 
-  return <EffortPicker onSelect={handleSelect} onCancel={handleCancel} />;
+  return <Pane title="EFFORT"><EffortPicker onSelect={handleSelect} onCancel={handleCancel} /></Pane>;
 }

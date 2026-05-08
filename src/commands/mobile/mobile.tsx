@@ -249,7 +249,7 @@ function MobileQRCode(t0) {
   }
   let t28;
   if ($[49] !== T1 || $[50] !== t27) {
-    t28 = <T1>{t27}</T1>;
+    t28 = <T1 title="MOBILE BRIDGE">{t27}</T1>;
     $[49] = T1;
     $[50] = t27;
     $[51] = t28;

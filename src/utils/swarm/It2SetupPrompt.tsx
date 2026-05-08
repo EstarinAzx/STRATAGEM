@@ -350,7 +350,7 @@ export function It2SetupPrompt(t0) {
   }
   let t16;
   if ($[32] !== T0 || $[33] !== t10 || $[34] !== t11 || $[35] !== t12 || $[36] !== t13 || $[37] !== t15 || $[38] !== t9) {
-    t16 = <T0 flexDirection={t9} gap={t10} paddingBottom={t11}>{t12}{t13}{t15}</T0>;
+    t16 = <T0 flexDirection={t9} gap={t10} paddingBottom={t11}>{t13}{t15}</T0>;
     $[32] = T0;
     $[33] = t10;
     $[34] = t11;
@@ -364,7 +364,7 @@ export function It2SetupPrompt(t0) {
   }
   let t17;
   if ($[40] !== T1 || $[41] !== t14 || $[42] !== t16) {
-    t17 = <T1 color={t14}>{t16}</T1>;
+    t17 = <T1 color={t14} title="ITERM2 SPLIT">{t16}</T1>;
     $[40] = T1;
     $[41] = t14;
     $[42] = t16;

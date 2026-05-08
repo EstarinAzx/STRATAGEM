@@ -194,11 +194,8 @@ export function FuzzyPicker<T>({
         {preview}
       </Box>;
   const inputAbove = direction !== 'up';
-  return <Pane color="permission">
+  return <Pane color="permission" title={title}>
       <Box flexDirection="column" gap={1} tabIndex={0} autoFocus onKeyDown={handleKeyDown}>
-        <Text bold color="permission">
-          {title}
-        </Text>
         {inputAbove && searchBox}
         {listGroup}
         {!inputAbove && searchBox}

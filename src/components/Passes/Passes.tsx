@@ -107,7 +107,7 @@ export function Passes({
     void loadPassesData();
   }, []);
   if (loading) {
-    return <Pane>
+    return <Pane title="GUEST PASSES">
         <Box flexDirection="column" gap={1}>
           <Text dimColor>Loading guest pass information…</Text>
           <Text dimColor italic>
@@ -117,7 +117,7 @@ export function Passes({
       </Pane>;
   }
   if (!isAvailable) {
-    return <Pane>
+    return <Pane title="GUEST PASSES">
         <Box flexDirection="column" gap={1}>
           <Text>Guest passes are not currently available.</Text>
           <Text dimColor italic>
@@ -152,7 +152,7 @@ export function Passes({
         <Text>{'└──────────┘'}</Text>
       </Box>;
   };
-  return <Pane>
+  return <Pane title="GUEST PASSES">
       <Box flexDirection="column" gap={1}>
         <Text color="permission">Guest passes · {availableCount} left</Text>
 

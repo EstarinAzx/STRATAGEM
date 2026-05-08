@@ -99,7 +99,6 @@ export function EffortPicker({ onSelect, onCancel }: Props) {
   return (
     <Box flexDirection="column">
       <Box marginBottom={1} flexDirection="column">
-        <Text color="remember" bold={true}>Set effort level</Text>
         <Text dimColor={true}>
             {supportsEffort && usesOpenAIEffort
               ? `OpenAI/Codex provider (${provider})`
