@@ -74,7 +74,7 @@ export function UserPromptMessage({
     return null;
   }
   const borderText = useBriefLayout ? undefined : { content: ' USER ', position: 'top' as const, align: 'start' as const, offset: 1 };
-  return <Box flexDirection="column" marginTop={addMargin ? 1 : 0} backgroundColor={isSelected ? 'messageActionsBackground' : useBriefLayout ? undefined : 'userMessageBackground'} paddingLeft={useBriefLayout ? 0 : 1} paddingRight={useBriefLayout ? 0 : 1} borderStyle={useBriefLayout ? undefined : 'single'} borderColor={useBriefLayout ? undefined : 'promptBorder'} borderLeft={useBriefLayout ? false : true} borderTop={useBriefLayout ? false : true} borderRight={false} borderBottom={false} borderText={borderText}>
+  return <Box flexDirection="column" marginTop={addMargin ? 1 : 0} backgroundColor={isSelected ? 'messageActionsBackground' : useBriefLayout ? undefined : 'userMessageBackground'} paddingLeft={useBriefLayout ? 0 : 1} paddingRight={useBriefLayout ? 0 : 1} borderStyle={useBriefLayout ? undefined : 'single'} borderColor={useBriefLayout ? undefined : 'promptBorder'} borderText={borderText}>
       <HighlightedThinkingText text={displayText} useBriefLayout={useBriefLayout} timestamp={useBriefLayout ? timestamp : undefined} />
     </Box>;
 }

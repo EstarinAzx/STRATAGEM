@@ -67,7 +67,7 @@ export function AssistantThinkingMessage(t0) {
   }
   let t7;
   if ($[6] !== t4 || $[7] !== t6) {
-    t7 = <Box flexDirection="column" marginTop={t4} width="100%" borderStyle="single" borderColor="dim" borderLeft={true} borderTop={true} borderRight={false} borderBottom={false} paddingLeft={1} borderText={{ content: ' TRACE // COGNITION ', position: 'top', align: 'start', offset: 1 }}>{t6}</Box>;
+    t7 = <Box flexDirection="column" marginTop={t4} width="100%" borderStyle="single" borderColor="dim" paddingLeft={1} paddingRight={1} borderText={{ content: ' TRACE // COGNITION ', position: 'top', align: 'start', offset: 1 }}>{t6}</Box>;
     $[6] = t4;
     $[7] = t6;
     $[8] = t7;
