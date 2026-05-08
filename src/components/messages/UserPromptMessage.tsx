@@ -73,10 +73,12 @@ export function UserPromptMessage({
     logError(new Error('No content found in user prompt message'));
     return null;
   }
-  // Channel-direction framing: USER messages are "uplink" (operator → agent).
-  // The matching DOWNLINK label sits on the assistant message border below
-  // so the transcript reads as a back-and-forth across one channel.
-  const borderText = useBriefLayout ? undefined : { content: ' UPLINK :: USER ', position: 'top' as const, align: 'start' as const, offset: 1 };
+  // Channel-direction framing: ▲ marks uplink (operator → agent); the
+  // matching ▼ on the assistant border below reads as a back-and-forth
+  // across one channel. Kept short so it fits inside the auto-shrunk
+  // bordered Box even for very short prompts ("hi") — the longer
+  // "UPLINK :: USER" form truncated to "UPLINK :: U" on narrow boxes.
+  const borderText = useBriefLayout ? undefined : { content: ' ▲ USER ', position: 'top' as const, align: 'start' as const, offset: 1 };
   return <Box alignItems="flex-start" flexDirection="row" justifyContent="space-between" marginTop={addMargin ? 1 : 0} width="100%" backgroundColor={isSelected ? 'messageActionsBackground' : undefined}>
       <Box flexDirection="column" backgroundColor={useBriefLayout ? undefined : 'userMessageBackground'} paddingLeft={useBriefLayout ? 0 : 1} paddingRight={useBriefLayout ? 0 : 1} borderStyle={useBriefLayout ? undefined : 'single'} borderColor={useBriefLayout ? undefined : 'promptBorder'} borderText={borderText}>
         <HighlightedThinkingText text={displayText} useBriefLayout={useBriefLayout} timestamp={useBriefLayout ? timestamp : undefined} />

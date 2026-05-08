@@ -1,6 +1,6 @@
 # XETH--7 / STRATAGEM X7 — Project Context
 
-> **Last updated**: 2026-05-08 — v0.3.68
+> **Last updated**: 2026-05-08 — v0.3.69
 
 ---
 
@@ -11,7 +11,7 @@
 | **Path** | `D:\Mods\xethryon\new agent\XETH--7` |
 | **Branch** | `xeth-7-dev` (all work goes here — never `main`) |
 | **NPM package** | `stratagem-x7` on npmjs.com |
-| **Current version** | `0.3.68` |
+| **Current version** | `0.3.69` |
 | **Global install** | `npm i -g stratagem-x7` |
 | **CLI commands** | `stx7`, `openclaude`, `xeth7` |
 | **Build** | `bun run build` → `dist/cli.mjs` |
@@ -313,7 +313,8 @@ Per-version notes for v0.3.46 onward live in [`changelog/`](changelog/README.md)
 
 | Version | Commit | Change |
 |---|---|---|
-| **0.3.68** | _pending_ | mega: full active-work sweep — STRATAGEM.md created, drag-to-scroll on scrollbar thumb, channel-direction transcript labels (UPLINK/DOWNLINK), Dialog → Pane border-title rollout, swarm pulse indicator, 70+ Claude/dimColor cleanups |
+| **0.3.69** | _pending_ | fix: shorten transcript channel-direction labels — `UPLINK :: USER` → `▲ USER`, `DOWNLINK :: STRATAGEM` → `▼ STRATAGEM` so the title fits inside short auto-shrunk message boxes |
+| **0.3.68** | `add6511` | mega: full active-work sweep — STRATAGEM.md created, drag-to-scroll on scrollbar thumb, channel-direction transcript labels (UPLINK/DOWNLINK), Dialog → Pane border-title rollout, swarm pulse indicator, 70+ Claude/dimColor cleanups |
 | **0.3.67** | `b00ad0b` | fix: USER message border auto-shrinks to content width — wraps bordered Box in row-flex parent to match STRATAGEM behavior |
 | **0.3.66** | `bac4b27` | fix: ScrollBox marginRight=1 reserves a column for ScrollIndicator — no more overlap with message-box right borders |
 | **0.3.65** | `e9d8409` | fix: openclaude path test sweep + isManagedLocalInstallationPath Windows path normalization |
