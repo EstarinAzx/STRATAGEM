@@ -35,6 +35,7 @@ import {
 import {
   addProviderProfile,
   applyActiveProviderProfileFromConfig,
+  applyProviderProfileToProcessEnv,
   deleteProviderProfile,
   getActiveProviderProfile,
   getProviderPresetDefaults,
@@ -462,34 +463,81 @@ function CodexOAuthSetup({
 }
 
 /**
- * Three-step Antigravity OAuth setup:
- *   1. ToS disclosure — user must explicitly accept the gray-area Google
- *      ToS warning. This is a hard gate; the OAuth flow will not start
- *      until the user picks "I accept the risk".
- *   2. Browser flow — open Google's consent screen, wait for the local
- *      callback, exchange the code for tokens, discover the Code Assist
- *      project, persist the account to the multi-account store.
- *   3. Done — the parent's onConfigured callback is fired with the
- *      newly-added account so the caller can wire up the provider profile.
+ * Antigravity model catalog. The `id` is the upstream model name sent
+ * to the Code Assist proxy in the envelope's `model` field — pick one
+ * Antigravity actually serves (`claude-opus-4-6` plain, for example,
+ * does NOT exist on Antigravity; only `claude-opus-4-6-thinking` does).
+ */
+const ANTIGRAVITY_MODEL_OPTIONS: Array<{
+  id: string
+  label: string
+  description: string
+}> = [
+  {
+    id: 'gemini-3-pro-preview',
+    label: 'Gemini 3 Pro (preview)',
+    description: "Google's flagship — best for long context + reasoning",
+  },
+  {
+    id: 'gemini-3.1-pro-preview',
+    label: 'Gemini 3.1 Pro (preview)',
+    description: 'Newer 3.1 Pro variant — same family, fresher snapshot',
+  },
+  {
+    id: 'gemini-3-flash-preview',
+    label: 'Gemini 3 Flash (preview)',
+    description: 'Faster + cheaper than Pro — good for tool-heavy loops',
+  },
+  {
+    id: 'claude-sonnet-4-6',
+    label: 'Claude Sonnet 4.6',
+    description: 'Anthropic Sonnet repackaged through Antigravity',
+  },
+  {
+    id: 'claude-opus-4-6-thinking',
+    label: 'Claude Opus 4.6 (thinking)',
+    description: 'Anthropic Opus with extended thinking — deepest reasoning',
+  },
+]
+
+/**
+ * Four-step Antigravity OAuth setup (mirrors Anthropic uplink 1/4 → 4/4):
+ *   1. ToS disclosure — hard gate; user must explicitly accept the
+ *      gray-area Google ToS warning before OAuth starts.
+ *   2. Browser flow — open Google consent, wait for callback, exchange
+ *      code for tokens, discover Code Assist project, persist account.
+ *   3. Model selection — pick from the Antigravity catalog. Default is
+ *      Gemini 3 Pro. Saved into the provider profile's model field.
+ *   4. Done — parent's onConfigured fires with (account, model) so the
+ *      caller can save the profile + apply env + update appState.
  */
 type AntigravitySetupState =
   | { state: 'disclosure' }
   | { state: 'starting' }
   | { state: 'awaiting'; authUrl: string; browserOpened: boolean }
   | { state: 'error'; message: string }
-  | { state: 'done'; account: AntigravityAccount }
+  | { state: 'select-model'; account: AntigravityAccount }
+  | { state: 'done'; account: AntigravityAccount; model: string }
 
 function AntigravityOAuthSetup({
   onBack,
   onConfigured,
 }: {
   onBack: () => void
-  onConfigured: (account: AntigravityAccount) => void | Promise<void>
+  onConfigured: (
+    account: AntigravityAccount,
+    model: string,
+  ) => void | Promise<void>
 }): React.ReactNode {
   const [status, setStatus] = React.useState<AntigravitySetupState>({
     state: 'disclosure',
   })
-  useKeybinding('confirm:no', onBack)
+  useKeybinding('confirm:no', () => {
+    // Esc only goes back from the disclosure screen; once OAuth has
+    // started or an account is linked, going "back" would orphan the
+    // account record. Use /provider edit/delete instead.
+    if (status.state === 'disclosure') onBack()
+  })
 
   const onConfiguredRef = React.useRef(onConfigured)
   React.useEffect(() => {
@@ -514,14 +562,23 @@ function AntigravityOAuthSetup({
         // Refresh the rotation singleton so the new account is visible
         // to the request path immediately.
         getAntigravityRotation().refresh()
-        setStatus({ state: 'done', account })
-        await onConfiguredRef.current(account)
+        // Hand off to model picker — caller's onConfigured fires only
+        // after the user selects a model.
+        setStatus({ state: 'select-model', account })
       } catch (err: unknown) {
         const message = err instanceof Error ? err.message : String(err)
         setStatus({ state: 'error', message })
       }
     })()
   }, [])
+
+  const finishWithModel = React.useCallback(
+    async (account: AntigravityAccount, model: string) => {
+      setStatus({ state: 'done', account, model })
+      await onConfiguredRef.current(account, model)
+    },
+    [],
+  )
 
   if (status.state === 'disclosure') {
     return (
@@ -583,6 +640,37 @@ function AntigravityOAuthSetup({
     )
   }
 
+  if (status.state === 'select-model') {
+    return (
+      <Box flexDirection="column" gap={1}>
+        <Text color="remember" bold>
+          Antigravity uplink — model selection (4/4)
+        </Text>
+        <Text>Linked as {status.account.email}.</Text>
+        <Text dimColor>
+          Pick the model to route this profile through. You can change it
+          later via /model or by editing the profile in /provider.
+        </Text>
+        <Select
+          options={ANTIGRAVITY_MODEL_OPTIONS.map(m => ({
+            value: m.id,
+            label: m.label,
+            description: m.description,
+          }))}
+          onChange={value => {
+            void finishWithModel(status.account, value)
+          }}
+          onCancel={() => {
+            // Esc on the picker = accept the default. Better UX than
+            // orphaning the freshly-linked account.
+            void finishWithModel(status.account, 'gemini-3-pro-preview')
+          }}
+          visibleOptionCount={ANTIGRAVITY_MODEL_OPTIONS.length}
+        />
+      </Box>
+    )
+  }
+
   if (status.state === 'done') {
     return (
       <Box flexDirection="column" gap={1}>
@@ -591,6 +679,7 @@ function AntigravityOAuthSetup({
         </Text>
         <Text>Account: {status.account.email}</Text>
         <Text dimColor>Project: {status.account.projectId}</Text>
+        <Text dimColor>Model: {status.model}</Text>
         <Text dimColor>Finishing setup...</Text>
       </Box>
     )
@@ -1881,13 +1970,13 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
       content = (
         <AntigravityOAuthSetup
           onBack={() => setScreen('select-preset')}
-          onConfigured={async account => {
+          onConfigured={async (account, model) => {
             const presetDefaults = getProviderPresetDefaults('antigravity')
             const payload: ProviderProfileInput = {
               provider: 'antigravity',
               name: presetDefaults.name,
               baseUrl: presetDefaults.baseUrl,
-              model: presetDefaults.model,
+              model,
               apiKey: '',
             }
 
@@ -1919,12 +2008,24 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
               return
             }
 
+            // Critical: apply the profile to env + propagate the model to
+            // appState so the runtime stops using the previous profile's
+            // resolved model. Without this, the status bar / main-loop
+            // code keeps the prior model (e.g. claude-opus-4-6) and the
+            // first request hits Antigravity with a model that doesn't
+            // exist in its catalog.
+            applyProviderProfileToProcessEnv(active)
+            setAppState(prev => ({
+              ...prev,
+              mainLoopModel: getPrimaryModel(active.model),
+            }))
+
             const settingsOverrideError =
               clearStartupProviderOverrideFromUserSettings()
             refreshProfiles()
             const message = settingsOverrideError
-              ? `Antigravity uplink linked as ${account.email}. Warning: could not clear startup provider override (${settingsOverrideError}).`
-              : `Antigravity uplink linked as ${account.email}.`
+              ? `Antigravity uplink linked as ${account.email} (${model}). Warning: could not clear startup provider override (${settingsOverrideError}).`
+              : `Antigravity uplink linked as ${account.email} (${model}).`
 
             if (mode === 'first-run') {
               onDone({
