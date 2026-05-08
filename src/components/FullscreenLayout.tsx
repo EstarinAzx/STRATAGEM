@@ -359,7 +359,7 @@ export function FullscreenLayout(t0) {
     }
     let t11;
     if ($[11] !== overlay || $[12] !== scrollRef || $[13] !== t10 || $[14] !== t9) {
-      t11 = <ScrollBox ref={scrollRef} flexGrow={1} flexDirection="column" paddingTop={t9} stickyScroll={true}>{t10}{overlay}</ScrollBox>;
+      t11 = <ScrollBox ref={scrollRef} flexGrow={1} flexDirection="column" paddingTop={t9} marginRight={1} stickyScroll={true}>{t10}{overlay}</ScrollBox>;
       $[11] = overlay;
       $[12] = scrollRef;
       $[13] = t10;
