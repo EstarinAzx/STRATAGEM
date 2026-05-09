@@ -307,6 +307,104 @@ function getKnownModelsForBaseUrl(baseUrl: string): string[] | null {
     ]
   }
 
+  // ── Tau Tier 2 OAuth-backed brands ───────────────────────────────
+  // Catalogs ported from tau-master/src/lanes/<brand>/. These are the
+  // fallback lists the brand's IDE shows when its dynamic /models call
+  // fails — same set the official client offers.
+
+  // GitHub Copilot — model ids verified against the gateway's
+  // openai-compat transformer (api.githubcopilot.com).
+  if (lower.includes('githubcopilot.com')) {
+    return [
+      'gpt-5.4',
+      'gpt-5.4-mini',
+      'gpt-5.3-codex',
+      'gpt-5.2',
+      'gpt-5.2-codex',
+      'gpt-5-mini',
+      'gpt-4.1',
+      'claude-sonnet-4.6',
+      'claude-sonnet-4.5',
+      'claude-sonnet-4',
+      'claude-opus-4.7',
+      'claude-opus-4.6',
+      'claude-opus-4.5',
+      'claude-haiku-4.5',
+    ]
+  }
+
+  // KiloCode — openrouter-shaped (provider/model). Curated default list.
+  if (lower.includes('kilocode.ai')) {
+    return [
+      'kilo-auto/balanced',
+      'kilo-auto/coder',
+      'kilo-auto/free',
+      'anthropic/claude-sonnet-4.6',
+      'anthropic/claude-opus-4.7',
+      'anthropic/claude-opus-4.6',
+      'anthropic/claude-haiku-4.5',
+      'openai/gpt-5.4',
+      'openai/gpt-5.3-codex',
+      'google/gemini-3.1-pro-preview',
+      'google/gemini-2.5-pro',
+      'google/gemini-2.5-flash',
+      'qwen/qwen3-coder',
+      'deepseek/deepseek-chat',
+      'z-ai/glm-5',
+      'moonshotai/kimi-k2.6',
+      'x-ai/grok-code-fast-1',
+    ]
+  }
+
+  // Cline — openrouter-shaped. Kimi K2.6 is the headline cheap model.
+  if (lower.includes('cline.bot')) {
+    return [
+      'moonshotai/kimi-k2.6',
+      'moonshotai/kimi-k2',
+      'kwaipilot/kat-coder-pro',
+      'minimax/minimax-m2.7',
+      'minimax/minimax-m2.5',
+      'arcee-ai/trinity-large-preview:free',
+      'z-ai/glm-5',
+      'z-ai/glm-4.6:exacto',
+      'anthropic/claude-sonnet-4.6',
+      'anthropic/claude-opus-4.7',
+      'anthropic/claude-opus-4.6',
+      'openai/gpt-5.4',
+      'openai/gpt-5.3-codex',
+      'google/gemini-3.1-pro-preview',
+      'google/gemini-3.1-flash-lite-preview',
+      'qwen/qwen3-coder',
+      'qwen/qwen3-coder:exacto',
+      'deepseek/deepseek-chat',
+      'x-ai/grok-code-fast-1',
+    ]
+  }
+
+  // Cursor — lane not wired; small placeholder so the form picker
+  // doesn't fall back to text input. These ids match Cursor's catalog
+  // for when a lane is eventually built.
+  if (lower.includes('cursor.sh') || lower.includes('cursor.com')) {
+    return [
+      'auto',
+      'gpt-5.4',
+      'gpt-5.3-codex',
+      'claude-sonnet-4.6',
+      'claude-opus-4.7',
+      'gemini-3.1-pro-preview',
+    ]
+  }
+
+  // Kiro — lane not wired; placeholder catalog of the AWS-served Claude
+  // model ids exposed via CodeWhisperer.
+  if (lower.includes('codewhisperer') || lower.includes('kiro')) {
+    return [
+      'claude-sonnet-4',
+      'claude-sonnet-4.5',
+      'claude-haiku-4.5',
+    ]
+  }
+
   return null
 }
 
