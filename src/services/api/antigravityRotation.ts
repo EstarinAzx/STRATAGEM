@@ -434,6 +434,22 @@ export class AntigravityRotation {
   health(): HealthSnapshot[] {
     return this.tracker.snapshotAll()
   }
+
+  /**
+   * Read-only view of the currently-selected account per family. Unlike
+   * `pickForFamily`, this never mutates the store or runs the picker —
+   * safe to call from UI render loops.
+   */
+  peekActivePerFamily(): Partial<Record<AntigravityFamily, string>> {
+    const out: Partial<Record<AntigravityFamily, string>> = {}
+    for (const family of ['gemini-pro', 'gemini-flash', 'claude'] as const) {
+      const idx =
+        this.store.activeIndexByFamily[family] ?? this.store.activeIndex
+      const a = this.store.accounts[idx]
+      if (a) out[family] = a.email
+    }
+    return out
+  }
 }
 
 // ─── Singleton ───────────────────────────────────────────────────

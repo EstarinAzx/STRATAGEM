@@ -209,6 +209,12 @@ export async function getAnthropicClient({
     isEnvTruthy(process.env.CLAUDE_CODE_USE_GEMINI) ||
     isEnvTruthy(process.env.CLAUDE_CODE_USE_MISTRAL)
   ) {
+    // Tau Tier 2 OAuth providers: refresh token + inject brand-specific
+    // headers before the openai-compat shim picks up OPENAI_API_KEY. The
+    // user's profile points at the brand's base URL; we detect the brand
+    // by URL substring and look up the fresh OAuth token + headers from
+    // the dedicated provider modules.
+    await applyBrandOAuthOverrides(defaultHeaders)
     const { createOpenAIShimClient } = await import('./openaiShim.js')
     return createOpenAIShimClient({
       defaultHeaders,
@@ -457,5 +463,71 @@ function buildFetch(
       // never let logging crash the fetch
     }
     return inner(input, { ...init, headers })
+  }
+}
+
+/**
+ * Tau Tier 2 OAuth providers route through the openai-compat shim with
+ * brand-specific tokens + headers. The OAuth token may be expired by now
+ * (Copilot internal tokens last ~30 min); we refresh on every dispatch
+ * and overwrite OPENAI_API_KEY so the shim picks up the fresh value.
+ *
+ * Brand detection is by base-URL substring against the active openai
+ * profile's URL — that's the field the user actually sees and edits.
+ *
+ * Cursor and Kiro are handled here too, but only to set the bearer for
+ * the openai shim. Their lanes aren't actually wired (proprietary wire
+ * formats), so requests will still error — that's expected until those
+ * lanes ship. The OAuth flow + provider preset still let the user link
+ * the account, which is the deliverable for this phase.
+ */
+async function applyBrandOAuthOverrides(
+  defaultHeaders: Record<string, string>,
+): Promise<void> {
+  const baseUrl = process.env.OPENAI_BASE_URL ?? ''
+  if (!baseUrl) return
+
+  if (baseUrl.includes('githubcopilot.com')) {
+    const [{ getValidCopilotToken, COPILOT_HEADERS }] = await Promise.all([
+      import('../oauth/copilot.js'),
+    ])
+    const token = await getValidCopilotToken()
+    if (token) process.env.OPENAI_API_KEY = token
+    Object.assign(defaultHeaders, COPILOT_HEADERS)
+    return
+  }
+
+  if (baseUrl.includes('api.cline.bot')) {
+    const { getValidClineToken } = await import('../oauth/cline.js')
+    const token = await getValidClineToken()
+    if (token) process.env.OPENAI_API_KEY = token
+    return
+  }
+
+  if (baseUrl.includes('kilocode.ai')) {
+    const { getKiloCodeOAuthToken, kiloCodeHeaders } = await import(
+      '../oauth/kilocode.js'
+    )
+    const token = getKiloCodeOAuthToken()
+    if (token) process.env.OPENAI_API_KEY = token
+    Object.assign(defaultHeaders, kiloCodeHeaders())
+    return
+  }
+
+  if (baseUrl.includes('api2.cursor.sh')) {
+    const { getValidCursorToken } = await import('../oauth/cursor.js')
+    const token = getValidCursorToken()
+    if (token) process.env.OPENAI_API_KEY = token
+    // No headers — Cursor's wire format is proprietary; this is just to
+    // surface a less-confusing 4xx than "missing API key" if a user does
+    // try to issue a request before the lane is wired.
+    return
+  }
+
+  if (baseUrl.includes('codewhisperer.us-east-1.amazonaws.com')) {
+    const { getValidKiroToken } = await import('../oauth/kiro.js')
+    const token = await getValidKiroToken()
+    if (token) process.env.OPENAI_API_KEY = token
+    return
   }
 }

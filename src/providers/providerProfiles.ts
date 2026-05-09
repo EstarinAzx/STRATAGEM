@@ -37,6 +37,12 @@ export type ProviderPreset =
   | 'sap-ai-core'
   | 'opencode'
   | 'opencode-go'
+  // Tau Tier 2 OAuth-backed brands (no API key — login via OAuth flow)
+  | 'copilot'
+  | 'kilocode'
+  | 'cline'
+  | 'cursor'
+  | 'kiro'
 
 export type ProviderProfileInput = {
   provider?: ProviderProfile['provider']
@@ -400,6 +406,64 @@ export function getProviderPresetDefaults(
         model: 'glm-5',
         apiKey: process.env.OPENCODE_API_KEY ?? '',
         requiresApiKey: true,
+      }
+    // ── Tau Tier 2 OAuth-backed brand presets ────────────────────────
+    // These five providers authenticate via OAuth flows (not API keys).
+    // The OAuth token is written into `apiKey` by the setup screen after
+    // login completes; for the three OpenAI-compat brands (Copilot,
+    // KiloCode, Cline) the existing openai shim picks it up directly.
+    // Cursor and Kiro use proprietary wire formats — their lanes are
+    // not yet wired, so model calls error until that lane lands.
+    case 'copilot':
+      return {
+        provider: 'openai',
+        name: 'GitHub Copilot (OAuth)',
+        baseUrl: 'https://api.githubcopilot.com',
+        model: 'gpt-5.4',
+        apiKey: '',
+        requiresApiKey: false,
+      }
+    case 'kilocode':
+      return {
+        provider: 'openai',
+        name: 'KiloCode (OAuth)',
+        baseUrl: 'https://kilocode.ai/api/openrouter/v1',
+        model: 'anthropic/claude-sonnet-4-6',
+        apiKey: '',
+        requiresApiKey: false,
+      }
+    case 'cline':
+      return {
+        provider: 'openai',
+        name: 'Cline (OAuth)',
+        baseUrl: 'https://api.cline.bot/v1',
+        model: 'moonshotai/kimi-k2.6',
+        apiKey: '',
+        requiresApiKey: false,
+      }
+    case 'cursor':
+      return {
+        provider: 'openai',
+        name: 'Cursor (OAuth) — lane not wired',
+        // Informational only — Cursor uses ConnectRPC/protobuf; the
+        // openai-compat baseUrl below will not actually serve requests
+        // until a Cursor lane is implemented. OAuth login still works.
+        baseUrl: 'https://api2.cursor.sh',
+        model: 'gpt-5.4',
+        apiKey: '',
+        requiresApiKey: false,
+      }
+    case 'kiro':
+      return {
+        provider: 'openai',
+        name: 'Kiro (OAuth) — lane not wired',
+        // Informational only — Kiro uses CodeWhisperer EventStream; the
+        // openai-compat baseUrl will not actually serve requests until a
+        // Kiro lane is implemented. OAuth login still works.
+        baseUrl: 'https://codewhisperer.us-east-1.amazonaws.com',
+        model: 'claude-sonnet-4',
+        apiKey: '',
+        requiresApiKey: false,
       }
     case 'ollama':
     default:

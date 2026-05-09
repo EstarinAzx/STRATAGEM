@@ -80,6 +80,7 @@ import {
   ANTIGRAVITY_MODEL_OPTIONS,
 } from '../providers/antigravityModels.js'
 import { openBrowser } from '../utils/browser.js'
+import { BrandOAuthSetup } from './BrandOAuthSetup.js'
 
 export type ProviderManagerResult = {
   action: 'saved' | 'cancelled' | 'delegate-anthropic-oauth'
@@ -99,6 +100,11 @@ type Screen =
   | 'codex-oauth'
   | 'antigravity-oauth'
   | 'antigravity-edit-model'
+  | 'brand-oauth-copilot'
+  | 'brand-oauth-kilocode'
+  | 'brand-oauth-cline'
+  | 'brand-oauth-cursor'
+  | 'brand-oauth-kiro'
   | 'form'
   | 'select-active'
   | 'select-edit'
@@ -1571,6 +1577,32 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
         label: 'OpenCode Go',
         description: 'OpenCode Go proxy — lightweight multi-provider API',
       },
+      // Tau Tier 2 OAuth-backed brand providers
+      {
+        value: 'copilot',
+        label: 'GitHub Copilot (OAuth)',
+        description: 'GitHub device-code login → Copilot internal token',
+      },
+      {
+        value: 'kilocode',
+        label: 'KiloCode (OAuth)',
+        description: 'KiloCode device-auth → openai-compat models',
+      },
+      {
+        value: 'cline',
+        label: 'Cline (OAuth)',
+        description: 'Cline browser login — Kimi K2.6 routes here cheaply',
+      },
+      {
+        value: 'cursor',
+        label: 'Cursor (OAuth) — auth only',
+        description: 'Tunnels into Cursor IDE subscription. Lane not yet wired.',
+      },
+      {
+        value: 'kiro',
+        label: 'Kiro (OAuth) — auth only',
+        description: 'AWS SSO Builder ID — biggest free credits. Lane not yet wired.',
+      },
       ...(mode === 'first-run'
         ? [
             {
@@ -1607,6 +1639,16 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
             }
             if (value === 'anthropic-oauth') {
               onDone({ action: 'delegate-anthropic-oauth' })
+              return
+            }
+            if (
+              value === 'copilot' ||
+              value === 'kilocode' ||
+              value === 'cline' ||
+              value === 'cursor' ||
+              value === 'kiro'
+            ) {
+              setScreen(`brand-oauth-${value}` as Screen)
               return
             }
             startCreateFromPreset(value as ProviderPreset)
@@ -2081,6 +2123,85 @@ export function ProviderManager({ mode, onDone }: Props): React.ReactNode {
         />
       )
       break
+    case 'brand-oauth-copilot':
+    case 'brand-oauth-kilocode':
+    case 'brand-oauth-cline':
+    case 'brand-oauth-cursor':
+    case 'brand-oauth-kiro': {
+      const brandPreset = screen.replace(
+        'brand-oauth-',
+        '',
+      ) as 'copilot' | 'kilocode' | 'cline' | 'cursor' | 'kiro'
+      content = (
+        <BrandOAuthSetup
+          preset={brandPreset}
+          onBack={() => setScreen('select-preset')}
+          onConfigured={async accessToken => {
+            const presetDefaults = getProviderPresetDefaults(brandPreset)
+            const payload: ProviderProfileInput = {
+              provider: 'openai',
+              name: presetDefaults.name,
+              baseUrl: presetDefaults.baseUrl,
+              model: presetDefaults.model,
+              apiKey: accessToken,
+            }
+
+            // Replace the existing profile of the same brand if one exists
+            // — these flows are single-account, so duplicates are noise.
+            const existing = profiles.find(
+              p => p.name === presetDefaults.name,
+            )
+            const saved = existing
+              ? updateProviderProfile(existing.id, payload)
+              : addProviderProfile(payload, { makeActive: true })
+
+            if (!saved) {
+              setErrorMessage(
+                `${presetDefaults.name} OAuth succeeded, but the provider profile could not be saved.`,
+              )
+              returnToMenu()
+              return
+            }
+
+            const active =
+              existing && activeProfileId !== saved.id
+                ? setActiveProviderProfile(saved.id)
+                : saved
+            if (!active) {
+              setErrorMessage(
+                `${presetDefaults.name} OAuth succeeded, but the provider could not be set as the startup provider.`,
+              )
+              returnToMenu()
+              return
+            }
+
+            applyProviderProfileToProcessEnv(active)
+            setAppState(prev => ({
+              ...prev,
+              mainLoopModel: getPrimaryModel(active.model),
+            }))
+
+            const settingsOverrideError =
+              clearStartupProviderOverrideFromUserSettings()
+            refreshProfiles()
+            const baseMessage = `${presetDefaults.name} uplink linked.`
+            const message = settingsOverrideError
+              ? `${baseMessage} Warning: could not clear startup provider override (${settingsOverrideError}).`
+              : baseMessage
+
+            if (mode === 'first-run') {
+              onDone({ action: 'saved', activeProfileId: active.id, message })
+              return
+            }
+
+            setStatusMessage(message)
+            setErrorMessage(undefined)
+            returnToMenu()
+          }}
+        />
+      )
+      break
+    }
     case 'codex-oauth':
       content = (
         <CodexOAuthSetup

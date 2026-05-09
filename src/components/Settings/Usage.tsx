@@ -17,6 +17,7 @@ import { Byline } from '../design-system/Byline.js';
 import { ProgressBar } from '../design-system/ProgressBar.js';
 import { isEligibleForOverageCreditGrant, OverageCreditUpsell } from '../LogoV2/OverageCreditUpsell.js';
 import { CodexUsage } from './CodexUsage.js';
+import { AntigravityUsage } from './AntigravityUsage.js';
 type LimitBarProps = {
   title: string;
   limit: RateLimit;
@@ -266,8 +267,12 @@ function AnthropicUsage(): React.ReactNode {
     </Box>;
 }
 export function Usage(): React.ReactNode {
-  if (getAPIProvider() === 'codex') {
+  const provider = getAPIProvider();
+  if (provider === 'codex') {
     return <CodexUsage />;
+  }
+  if (provider === 'antigravity') {
+    return <AntigravityUsage />;
   }
   return <AnthropicUsage />;
 }
