@@ -86,6 +86,22 @@ const LOGO_STX7 = [
   `                              ═══ X7 ═══                                        `,
 ]
 
+// Mid-tier compact "STRATAGEM" — 36 cols, 3-row halfblock pixel font.
+// Each letter is a 6×3 (or 6×4 for M) pixel grid compressed via ▀▄█,
+// with 1-col gaps so letterforms read clearly. Used when full logo (~84)
+// won't fit, e.g. Termux portrait.
+const LOGO_STX7_MINI = [
+  `╔═══════════════════════════════════════╗`,
+  `║ █▀▀ ▀█▀ █▀▄ ▄▀▄ ▀█▀ ▄▀▄ █▀▀ █▀▀ █▄ ▄█ ║ `,
+  `║ ▀▀█  █  █▀▄ █▀█  █  █▀█ █ █ █▀  █ █ █ ║ `,
+  `║ ███  █  █ █ █ █  █  █ █ ▀▄█ █▄▄ █   █ ║ `,
+  `╚═══════════════════════════════════════╝`,
+  `               ═══ X7 ═══             `,
+]
+
+// Last-resort single-line fallback (terminals narrower than the mini logo).
+const LOGO_TINY = `◢ STRATAGEM X7 ◣`
+
 
 // â”€â”€â”€ Provider detection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -145,13 +161,13 @@ function detectProvider(): { name: string; model: string; baseUrl: string; isLoc
       name = 'Meta Llama'
     else if (isLocal)
       name = getLocalOpenAICompatibleProviderLabel(baseUrl)
-    
+
     // Resolve model alias to actual model name + reasoning effort
     let displayModel = resolvedRequest.resolvedModel
     if (resolvedRequest.reasoning?.effort) {
       displayModel = `${displayModel} (${resolvedRequest.reasoning.effort})`
     }
-    
+
     return { name, model: displayModel, baseUrl, isLocal }
   }
 
@@ -213,35 +229,53 @@ function boxRow(content: string, width: number, rawLen: number): string {
 
 export function getStartupLines(termWidth?: number): string[] {
   const p = detectProvider()
-  const W = 84
-  const tw = termWidth ?? process.stdout.columns ?? W
+  const tw = termWidth ?? process.stdout.columns ?? 84
+  // Box width adapts: full 84 when there's room, shrinks to fit narrow
+  // terminals (Termux is typically ~40 cols), with a sane minimum so the
+  // labels don't get clipped.
+  const W = Math.max(30, Math.min(84, tw - 2))
   const out: string[] = []
 
   out.push('')
   out.push('')
 
-  // Gradient logo
-  const allLogo = LOGO_STX7
-  const total = allLogo.length
-  for (let i = 0; i < total; i++) {
-    const t = total > 1 ? i / (total - 1) : 0
-    if (allLogo[i] === '') {
-      out.push('')
-    } else {
-      out.push(centerAnsiLine(paintLine(allLogo[i], SUNSET_GRAD, t), tw))
+  // Gradient logo — full block art needs ~84 cols, mini block art needs
+  // ~38 cols; below that, render the brand as single-line gradient text so
+  // it doesn't wrap into pixel soup.
+  const logo = tw >= 84 ? LOGO_STX7 : tw >= 38 ? LOGO_STX7_MINI : null
+  if (logo) {
+    const total = logo.length
+    for (let i = 0; i < total; i++) {
+      const t = total > 1 ? i / (total - 1) : 0
+      if (logo[i] === '') {
+        out.push('')
+      } else {
+        out.push(centerAnsiLine(paintLine(logo[i], SUNSET_GRAD, t), tw))
+      }
     }
+  } else {
+    out.push('')
+    out.push(centerAnsiLine(paintLine(LOGO_TINY, SUNSET_GRAD, 0.5), tw))
+    out.push('')
   }
 
   out.push('')
 
-  // Tagline
-  out.push(centerAnsiLine(`${DIM}${rgb(...DIMCOL)}${'─'.repeat(14)}${RESET} ${rgb(...ACCENT)}NET//TECH${RESET} ${DIM}${rgb(...DIMCOL)}${'─'.repeat(14)}${RESET}`, tw))
-  out.push(centerAnsiLine(`${rgb(...ACCENT)}◢${RESET} ${rgb(...CREAM)}STRATAGEM X7 // breach shell // protocol online.${RESET} ${rgb(...CYAN)}◣${RESET}`, tw))
+  // Tagline — drop the long sub-tagline at narrow widths to avoid wrap.
+  const taglineDashes = Math.max(2, Math.min(14, Math.floor((tw - 12) / 2)))
+  out.push(centerAnsiLine(`${DIM}${rgb(...DIMCOL)}${'─'.repeat(taglineDashes)}${RESET} ${rgb(...ACCENT)}NET//TECH${RESET} ${DIM}${rgb(...DIMCOL)}${'─'.repeat(taglineDashes)}${RESET}`, tw))
+  if (tw >= 60) {
+    out.push(centerAnsiLine(`${rgb(...ACCENT)}◢${RESET} ${rgb(...CREAM)}STRATAGEM X7 // breach shell // protocol online.${RESET} ${rgb(...CYAN)}◣${RESET}`, tw))
+  } else if (tw >= 40) {
+    out.push(centerAnsiLine(`${rgb(...ACCENT)}◢${RESET} ${rgb(...CREAM)}breach shell // online${RESET} ${rgb(...CYAN)}◣${RESET}`, tw))
+  }
   out.push('')
   out.push('')
 
   // Provider info box
-  const title = ' BREACH PROTOCOL INTERFACE '
+  const fullTitle = ' BREACH PROTOCOL INTERFACE '
+  const shortTitle = ' BREACH INTERFACE '
+  const title = W >= fullTitle.length ? fullTitle : shortTitle
   out.push(centerAnsiLine(`${bg(...BORDER)}${rgb(...PANEL_BG)}${title}${' '.repeat(Math.max(0, W - title.length))}${RESET}`, tw))
   out.push(centerAnsiLine(`${rgb(...BORDER)}┌${'─'.repeat(W - 2)}┐${RESET}`, tw))
 
@@ -250,25 +284,44 @@ export function getStartupLines(termWidth?: number): string[] {
     return [` ${DIM}${rgb(...DIMCOL)}${padK}${RESET} ${rgb(...c)}${v}${RESET}`, ` ${padK} ${v}`.length]
   }
 
+  // Truncation budget for value text inside the box (W - "│ Provider " - " │")
+  const maxVal = Math.max(8, W - 14)
+  const truncate = (s: string): string => (s.length > maxVal ? s.slice(0, Math.max(3, maxVal - 3)) + '...' : s)
+
   const provC: RGB = p.isLocal ? [160, 255, 214] : CYAN
-  let [r, l] = lbl('Provider', p.name, provC)
+  let [r, l] = lbl('Provider', truncate(p.name), provC)
   out.push(centerAnsiLine(boxRow(r, W, l), tw))
-  ;[r, l] = lbl('Model', p.model)
+    ;[r, l] = lbl('Model', truncate(p.model))
   out.push(centerAnsiLine(boxRow(r, W, l), tw))
-  const ep = p.baseUrl.length > 46 ? p.baseUrl.slice(0, 43) + '...' : p.baseUrl
-  ;[r, l] = lbl('Uplink', ep)
+    ;[r, l] = lbl('Uplink', truncate(p.baseUrl))
   out.push(centerAnsiLine(boxRow(r, W, l), tw))
 
   out.push(centerAnsiLine(`${rgb(...BORDER)}├${'─'.repeat(W - 2)}┤${RESET}`, tw))
 
   const sC: RGB = p.isLocal ? [160, 255, 214] : CYAN
   const sL = p.isLocal ? 'local' : 'cloud'
-  const sRow = ` ${rgb(...sC)}●${RESET} ${DIM}${rgb(...DIMCOL)}${sL}${RESET}    ${rgb(...ACCENT)}buffer ready${RESET} ${DIM}${rgb(...DIMCOL)}— /help for breach controls${RESET}`
-  const sLen = ` ● ${sL}    buffer ready — /help for breach controls`.length
+  // Status row tiers — drop the help hint, then the spacing, as W shrinks.
+  let sRow: string
+  let sLen: number
+  if (W >= 60) {
+    sRow = ` ${rgb(...sC)}●${RESET} ${DIM}${rgb(...DIMCOL)}${sL}${RESET}    ${rgb(...ACCENT)}buffer ready${RESET} ${DIM}${rgb(...DIMCOL)}— /help for breach controls${RESET}`
+    sLen = ` ● ${sL}    buffer ready — /help for breach controls`.length
+  } else if (W >= 40) {
+    sRow = ` ${rgb(...sC)}●${RESET} ${DIM}${rgb(...DIMCOL)}${sL}${RESET}  ${rgb(...ACCENT)}buffer ready${RESET}`
+    sLen = ` ● ${sL}  buffer ready`.length
+  } else {
+    sRow = ` ${rgb(...sC)}●${RESET} ${rgb(...ACCENT)}buffer ready${RESET}`
+    sLen = ` ● buffer ready`.length
+  }
   out.push(centerAnsiLine(boxRow(sRow, W, sLen), tw))
 
   out.push(centerAnsiLine(`${rgb(...BORDER)}└${'─'.repeat(W - 2)}┘${RESET}`, tw))
-  out.push(centerAnsiLine(`${rgb(...DIMCOL)}STRATAGEM X7${RESET} ${rgb(...ACCENT)}v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}${RESET} ${rgb(...CYAN)}// breach link stable${RESET}`, tw))
+  // Footer — drop the trailing tag at narrow widths.
+  if (tw >= 50) {
+    out.push(centerAnsiLine(`${rgb(...DIMCOL)}STRATAGEM X7${RESET} ${rgb(...ACCENT)}v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}${RESET} ${rgb(...CYAN)}// breach link stable${RESET}`, tw))
+  } else {
+    out.push(centerAnsiLine(`${rgb(...DIMCOL)}STX7${RESET} ${rgb(...ACCENT)}v${MACRO.DISPLAY_VERSION ?? MACRO.VERSION}${RESET}`, tw))
+  }
   out.push('')
 
   return out

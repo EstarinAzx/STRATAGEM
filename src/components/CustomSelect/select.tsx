@@ -216,7 +216,12 @@ export function Select(t0) {
   const isDisabled = t1 === undefined ? false : t1;
   const hideIndexes = t2 === undefined ? false : t2;
   const visibleOptionCount = t3 === undefined ? 5 : t3;
-  const layout = t4 === undefined ? "compact" : t4;
+  const requestedLayout = t4 === undefined ? "compact" : t4;
+  // On narrow terminals (Termux, splits) the two-column compact layout
+  // squeezes descriptions into a 1-char column and Ink wraps them
+  // character-by-character. Auto-promote to compact-vertical so descriptions
+  // sit on their own line below the label.
+  const layout = (process.stdout.columns ?? 80) < 70 && requestedLayout === "compact" ? "compact-vertical" : requestedLayout;
   const disableSelection = t5 === undefined ? false : t5;
   const inlineDescriptions = t6 === undefined ? false : t6;
   const [imagesSelected, setImagesSelected] = useState(false);
