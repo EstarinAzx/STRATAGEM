@@ -52,10 +52,13 @@ import {
   type ValidationError,
 } from './validation.js'
 
-type AutonomyMode = 'off' | 'smart' | 'aggressive'
+type AutonomyMode = 'off' | 'plan' | 'smart' | 'aggressive'
 
 function normalizeAutonomyModeSetting(value: unknown): AutonomyMode {
-  return value === 'smart' || value === 'aggressive' || value === 'off'
+  return value === 'plan' ||
+    value === 'smart' ||
+    value === 'aggressive' ||
+    value === 'off'
     ? value
     : 'off'
 }

@@ -7,7 +7,7 @@ import {
   transitionPermissionMode,
 } from './permissions/permissionSetup.js'
 
-export const AUTONOMY_MODES = ['off', 'smart', 'aggressive'] as const
+export const AUTONOMY_MODES = ['off', 'plan', 'smart', 'aggressive'] as const
 export type AutonomyMode = (typeof AUTONOMY_MODES)[number]
 
 export function normalizeAutonomyMode(value: unknown): AutonomyMode {
@@ -22,6 +22,8 @@ export function getAutonomyModeFromSettings(settings?: SettingsJson): AutonomyMo
 
 export function autonomyModeTitle(mode: AutonomyMode): string {
   switch (mode) {
+    case 'plan':
+      return 'PLAN'
     case 'smart':
       return 'SMART'
     case 'aggressive':
@@ -33,6 +35,8 @@ export function autonomyModeTitle(mode: AutonomyMode): string {
 
 export function autonomyModeDescription(mode: AutonomyMode): string {
   switch (mode) {
+    case 'plan':
+      return 'Plan mode — read-only exploration; no edits or shell side effects until you exit.'
     case 'smart':
       return 'Classifier-driven autonomy with minimal prompts for routine work.'
     case 'aggressive':
@@ -44,9 +48,12 @@ export function autonomyModeDescription(mode: AutonomyMode): string {
 
 export function autonomyModeColor(mode: AutonomyMode):
   | 'inactive'
+  | 'planMode'
   | 'promptBorder'
   | 'claude' {
   switch (mode) {
+    case 'plan':
+      return 'planMode'
     case 'smart':
       return 'promptBorder'
     case 'aggressive':
@@ -59,6 +66,8 @@ export function autonomyModeColor(mode: AutonomyMode):
 export function getNextAutonomyMode(mode: AutonomyMode): AutonomyMode {
   switch (mode) {
     case 'off':
+      return 'plan'
+    case 'plan':
       return 'smart'
     case 'smart':
       return 'aggressive'
@@ -79,6 +88,8 @@ export function autonomyModeToPermissionMode(
         return 'auto'
       }
       return 'acceptEdits'
+    case 'plan':
+      return 'plan'
     default:
       return 'default'
   }
@@ -86,6 +97,8 @@ export function autonomyModeToPermissionMode(
 
 export function permissionModeToAutonomyMode(mode: PermissionMode): AutonomyMode {
   switch (mode) {
+    case 'plan':
+      return 'plan'
     case 'auto':
     case 'acceptEdits':
       return 'smart'

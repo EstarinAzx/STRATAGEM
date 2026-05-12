@@ -1509,7 +1509,7 @@ function PromptInput({
       return;
     }
 
-    const nextAutonomyMode = getNextAutonomyMode(autonomyMode as 'off' | 'smart' | 'aggressive');
+    const nextAutonomyMode = getNextAutonomyMode(autonomyMode as 'off' | 'plan' | 'smart' | 'aggressive');
     const persistResult = updateSettingsForSource('userSettings', {
       autonomyMode: nextAutonomyMode
     });

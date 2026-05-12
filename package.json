@@ -1,6 +1,6 @@
 {
   "name": "stratagem-x7",
-  "version": "0.3.79",
+  "version": "0.4.2",
   "description": "STRATAGEM X7 is a cyberpunk coding-agent CLI for cloud and local model providers",
   "type": "module",
   "bin": {

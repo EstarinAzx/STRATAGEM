@@ -19,10 +19,15 @@ function context(overrides: Partial<ToolPermissionContext> = {}): ToolPermission
   }
 }
 
-test('getNextAutonomyMode cycles off -> smart -> aggressive -> off', () => {
-  expect(getNextAutonomyMode('off')).toBe('smart')
+test('getNextAutonomyMode cycles off -> plan -> smart -> aggressive -> off', () => {
+  expect(getNextAutonomyMode('off')).toBe('plan')
+  expect(getNextAutonomyMode('plan')).toBe('smart')
   expect(getNextAutonomyMode('smart')).toBe('aggressive')
   expect(getNextAutonomyMode('aggressive')).toBe('off')
+})
+
+test('autonomyModeToPermissionMode maps plan to plan', () => {
+  expect(autonomyModeToPermissionMode('plan', context())).toBe('plan')
 })
 
 test('autonomyModeToPermissionMode maps aggressive to bypass permissions', () => {

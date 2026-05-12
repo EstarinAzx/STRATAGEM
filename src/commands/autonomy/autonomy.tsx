@@ -11,7 +11,7 @@ import {
 import { updateSettingsForSource } from '../../utils/settings/settings.js'
 
 const HELP =
-  'Usage: /autonomy [off|smart|aggressive|status]\n\nModes:\n- off: normal approvals\n- smart: classifier-driven autonomy\n- aggressive: bypass-style execution with no permission prompts'
+  'Usage: /autonomy [off|plan|smart|aggressive|status]\n\nModes:\n- off: normal approvals\n- plan: read-only plan mode (no edits or shell side effects)\n- smart: classifier-driven autonomy\n- aggressive: bypass-style execution with no permission prompts'
 
 function ShowCurrentAutonomy({
   onDone,
@@ -76,6 +76,7 @@ export async function call(
   }
   if (
     normalized !== 'off' &&
+    normalized !== 'plan' &&
     normalized !== 'smart' &&
     normalized !== 'aggressive'
   ) {
