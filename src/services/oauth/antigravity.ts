@@ -126,6 +126,21 @@ export interface AntigravityAccount {
    * pro/flash split.
    */
   rateLimitResetTimes: Record<string, number | null>
+  /**
+   * Set when Google returns 403 PERMISSION_DENIED on this account
+   * (e.g. "This service has been disabled in this account for violation
+   * of Terms of Service"). The account stays filtered out of rotation
+   * regardless of `enabled` until `clearTosViolation()` is called.
+   * Plain `reenable()` will NOT bring it back — that's intentional, the
+   * 403 means Google has flagged the account-record, not transient.
+   */
+  tosViolation?: {
+    detectedAt: number
+    /** URL Google returned for filing an appeal, if present. */
+    appealUrl?: string
+    /** Google's `reason` code (e.g. SERVICE_DISABLED) or error message. */
+    reason?: string
+  }
 }
 
 export interface AntigravityStore {
@@ -240,6 +255,16 @@ export async function awaitAuthorizationCode(
 
 // ─── Token exchange + refresh ─────────────────────────────────────
 
+/**
+ * The User-Agent we present on every Antigravity-flavored request to
+ * Google — same string the Code Assist proxy headers carry, so the
+ * OAuth handshake and the API calls share one identity rather than
+ * leaking `google-api-nodejs-client/<ver>` on the token endpoints
+ * (the default Google Node SDK UA — a dead-giveaway "this is a
+ * Node CLI, not the Antigravity Electron IDE" signal).
+ */
+const ANTIGRAVITY_UA = `antigravity/${ANTIGRAVITY_API_VERSION} google-cloud-sdk vscode_cloudshelleditor/0.1`
+
 export async function exchangeCodeForTokens(
   code: string,
   verifier: string,
@@ -249,7 +274,7 @@ export async function exchangeCodeForTokens(
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      'User-Agent': 'google-api-nodejs-client/9.15.1',
+      'User-Agent': ANTIGRAVITY_UA,
     },
     body: new URLSearchParams({
       client_id: ANTIGRAVITY_CLIENT_ID,
@@ -276,7 +301,7 @@ export async function refreshAccessToken(
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-      'User-Agent': 'google-api-nodejs-client/9.15.1',
+      'User-Agent': ANTIGRAVITY_UA,
     },
     body: new URLSearchParams({
       client_id: ANTIGRAVITY_CLIENT_ID,
@@ -298,7 +323,10 @@ export async function refreshAccessToken(
 
 export async function fetchUserEmail(accessToken: string): Promise<string> {
   const resp = await fetch('https://openidconnect.googleapis.com/v1/userinfo', {
-    headers: { Authorization: `Bearer ${accessToken}` },
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      'User-Agent': ANTIGRAVITY_UA,
+    },
   })
   if (!resp.ok) {
     return `unknown-${Date.now()}@antigravity`
@@ -309,12 +337,21 @@ export async function fetchUserEmail(accessToken: string): Promise<string> {
 
 // ─── Project discovery ──────────────────────────────────────────
 
+/**
+ * Map the host OS to the label Antigravity / Code Assist expects. Used in
+ * both the `Client-Metadata` request header and the `loadCodeAssist` body
+ * so they stay consistent — a mismatch is a cheap fingerprint signal the
+ * real IDE wouldn't produce.
+ */
+function detectPlatformLabel(): 'WINDOWS' | 'MACOS' | 'LINUX' {
+  const p = platform()
+  return p === 'win32' ? 'WINDOWS' : p === 'darwin' ? 'MACOS' : 'LINUX'
+}
+
 export async function discoverProject(
   accessToken: string,
 ): Promise<{ projectId: string; managedProjectId?: string }> {
-  const p = platform()
-  const platformLabel =
-    p === 'win32' ? 'WINDOWS' : p === 'darwin' ? 'MACOS' : 'LINUX'
+  const platformLabel = detectPlatformLabel()
   const body = JSON.stringify({
     metadata: {
       ideType: 'ANTIGRAVITY',
@@ -365,8 +402,11 @@ export function buildApiHeaders(accessToken: string): Record<string, string> {
     'Content-Type': 'application/json',
     'User-Agent': `antigravity/${ANTIGRAVITY_API_VERSION} google-cloud-sdk vscode_cloudshelleditor/0.1`,
     'X-Goog-Api-Client': 'google-cloud-sdk vscode_cloudshelleditor/0.1',
-    'Client-Metadata':
-      '{"ideType":"ANTIGRAVITY","platform":"WINDOWS","pluginType":"GEMINI"}',
+    'Client-Metadata': JSON.stringify({
+      ideType: 'ANTIGRAVITY',
+      platform: detectPlatformLabel(),
+      pluginType: 'GEMINI',
+    }),
   }
 }
 

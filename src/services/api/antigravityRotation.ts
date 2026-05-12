@@ -337,13 +337,13 @@ export class AntigravityRotation {
    */
   pickForFamily(family: AntigravityFamily): AntigravityAccount | null {
     const eligibleIds = this.store.accounts
-      .filter(a => a.enabled)
+      .filter(a => a.enabled && !a.tosViolation)
       .map(accountId)
 
     const preferredIdx =
       this.store.activeIndexByFamily[family] ?? this.store.activeIndex
     const preferred = this.store.accounts[preferredIdx]
-    if (preferred && preferred.enabled) {
+    if (preferred && preferred.enabled && !preferred.tosViolation) {
       const snap = this.tracker.snapshot(accountId(preferred))
       if (snap && !snap.disabled && snap.cooldownRemaining <= 0) {
         return preferred
@@ -380,7 +380,9 @@ export class AntigravityRotation {
 
   /** Look up the next time any eligible account comes out of cooldown. */
   nextRecoveryAt(): number | null {
-    const ids = this.store.accounts.filter(a => a.enabled).map(accountId)
+    const ids = this.store.accounts
+      .filter(a => a.enabled && !a.tosViolation)
+      .map(accountId)
     const rec = this.tracker.earliestRecovery(ids)
     return rec ? rec.at : null
   }
@@ -420,9 +422,49 @@ export class AntigravityRotation {
     saveStore(this.store)
   }
 
+  /**
+   * Mark an account as having tripped Google's account-level enforcement
+   * (403 PERMISSION_DENIED with ToS-violation reason). The account is
+   * immediately and permanently filtered out of rotation — plain
+   * `reenable()` will not bring it back; callers must explicitly call
+   * `clearTosViolation()` after the user has resolved the issue with
+   * Google (or chosen to retry against their judgment).
+   */
+  recordTosViolation(
+    account: AntigravityAccount,
+    appealUrl: string | undefined,
+    reason: string | undefined,
+  ): void {
+    account.tosViolation = {
+      detectedAt: Date.now(),
+      appealUrl,
+      reason,
+    }
+    account.enabled = false
+    this.tracker.disable(accountId(account))
+    saveStore(this.store)
+  }
+
   reenable(email: string): boolean {
     const a = this.store.accounts.find(x => x.email === email)
     if (!a) return false
+    if (a.tosViolation) return false
+    a.enabled = true
+    this.tracker.reenable(accountId(a))
+    saveStore(this.store)
+    return true
+  }
+
+  /**
+   * Clear a `tosViolation` flag and re-enable the account. Separate from
+   * `reenable()` so users can't accidentally retry a Google-banned account
+   * by just typing "reenable" — has to be an explicit clear after they
+   * understand the risk.
+   */
+  clearTosViolation(email: string): boolean {
+    const a = this.store.accounts.find(x => x.email === email)
+    if (!a || !a.tosViolation) return false
+    delete a.tosViolation
     a.enabled = true
     this.tracker.reenable(accountId(a))
     saveStore(this.store)

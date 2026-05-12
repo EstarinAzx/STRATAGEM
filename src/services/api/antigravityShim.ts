@@ -114,8 +114,64 @@ function isRateLimitStatus(status: number): boolean {
   return status === 429 || status === 503
 }
 
-function isAuthFailureStatus(status: number): boolean {
-  return status === 401 || status === 403
+interface GoogleErrorDetails {
+  isPermissionDenied: boolean
+  status?: string
+  reason?: string
+  appealUrl?: string
+  message?: string
+}
+
+/**
+ * Parse a Google API error body, isolating the bits we care about for the
+ * 403 PERMISSION_DENIED account-disabled path: the canonical `status`
+ * code, a `reason` (e.g. SERVICE_DISABLED), and an appeal URL if Google
+ * embedded one. The URL can live in either an ErrorInfo's `metadata`
+ * or a Help block's `links[].url` — we accept either.
+ */
+function parseGoogleErrorBody(body: string): GoogleErrorDetails {
+  try {
+    const parsed = JSON.parse(body) as {
+      error?: {
+        status?: string
+        message?: string
+        details?: Array<Record<string, unknown>>
+      }
+    }
+    const err = parsed.error
+    if (!err) return { isPermissionDenied: false }
+    let reason: string | undefined
+    let appealUrl: string | undefined
+    for (const d of err.details ?? []) {
+      const t = d['@type']
+      if (typeof t !== 'string') continue
+      if (t.includes('ErrorInfo')) {
+        const r = d.reason
+        if (typeof r === 'string') reason = r
+        const meta = d.metadata as Record<string, unknown> | undefined
+        if (meta) {
+          const url = meta.appeal_url ?? meta.appealUrl ?? meta.url
+          if (typeof url === 'string') appealUrl ??= url
+        }
+      } else if (t.includes('Help')) {
+        const links = d.links as Array<Record<string, unknown>> | undefined
+        if (Array.isArray(links)) {
+          for (const l of links) {
+            if (typeof l.url === 'string') appealUrl ??= l.url
+          }
+        }
+      }
+    }
+    return {
+      isPermissionDenied: err.status === 'PERMISSION_DENIED',
+      status: err.status,
+      reason,
+      appealUrl,
+      message: err.message,
+    }
+  } catch {
+    return { isPermissionDenied: false }
+  }
 }
 
 // ─── Endpoint dispatch ───────────────────────────────────────────
@@ -229,20 +285,40 @@ async function buildApiErrorFromResponse(
   resolved: ResolvedAccount,
 ): Promise<APIError> {
   const text = await response.text().catch(() => '')
+  const rotation = getAntigravityRotation()
+
   if (isRateLimitStatus(response.status)) {
     const cooldownMs =
       parseRetryInfoFromBody(text) ??
       parseRetryAfterMs(response.headers as unknown as Headers)
-    getAntigravityRotation().recordRateLimit(
-      resolved.account,
-      resolved.family,
-      cooldownMs,
-    )
-  } else if (isAuthFailureStatus(response.status)) {
-    getAntigravityRotation().recordHardFailure(resolved.account)
+    rotation.recordRateLimit(resolved.account, resolved.family, cooldownMs)
+  } else if (response.status === 403) {
+    const parsed = parseGoogleErrorBody(text)
+    if (parsed.isPermissionDenied) {
+      rotation.recordTosViolation(
+        resolved.account,
+        parsed.appealUrl,
+        parsed.reason ?? parsed.message,
+      )
+      const reasonLabel = parsed.reason ?? 'PERMISSION_DENIED'
+      const detail = parsed.message ?? text.slice(0, 300)
+      const appealLine = parsed.appealUrl
+        ? `\nAppeal: ${parsed.appealUrl}`
+        : ''
+      return APIError.generate(
+        403,
+        undefined,
+        `Antigravity account "${resolved.account.email}" was disabled by Google (${reasonLabel}). ` +
+          `Rotation will skip it on future requests; run /login and pick "Antigravity" to add a different Google account.${appealLine}\n\n${detail}`,
+        response.headers as unknown as Headers,
+      )
+    }
+    rotation.recordHardFailure(resolved.account)
+  } else if (response.status === 401) {
+    rotation.recordHardFailure(resolved.account)
   } else if (response.status >= 500) {
     // Server error — don't disable the account, just record a soft failure.
-    getAntigravityRotation().recordHardFailure(resolved.account)
+    rotation.recordHardFailure(resolved.account)
   }
   return APIError.generate(
     response.status,
